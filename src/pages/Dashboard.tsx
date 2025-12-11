@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Play, Heart, Eye, Coins } from 'lucide-react';
+import { Upload, Play, Heart, Eye, Coins, Brain, Zap } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { showSuccess, showError } from "@/utils/toast";
 
@@ -74,6 +75,36 @@ const Dashboard = () => {
           <p className="text-sm text-gray-500 mt-2">
             Tokens are used to process your videos. Upload longer videos to earn more!
           </p>
+        </CardContent>
+      </Card>
+
+      {/* AI Algorithm Card */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Brain className="mr-2 h-5 w-5 text-blue-600" />
+            AI Clip Detection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-2/3 mb-4 md:mb-0 md:pr-4">
+              <p className="text-gray-600 mb-2">
+                Our advanced AI algorithm automatically detects the most exciting moments in your streams.
+              </p>
+              <p className="text-sm text-gray-500">
+                Configure detection parameters and upload your video to get started.
+              </p>
+            </div>
+            <div className="md:w-1/3 w-full">
+              <Link to="/ai-algorithm">
+                <Button className="w-full">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Run AI Detection
+                </Button>
+              </Link>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

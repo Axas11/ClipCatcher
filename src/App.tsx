@@ -10,6 +10,7 @@ import Dashboard from '@/pages/Dashboard';
 import Feed from '@/pages/Feed';
 import Profile from '@/pages/Profile';
 import Editor from '@/pages/Editor';
+import AIAlgorithm from '@/pages/AIAlgorithm';
 import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ function App() {
               <Route path="/feed" element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/editor" element={<Editor />} />
+              <Route path="/ai-algorithm" element={<AIAlgorithm />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

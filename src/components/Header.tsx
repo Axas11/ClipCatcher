@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Coins, User, Home, TrendingUp } from 'lucide-react';
+import { Coins, User, Home, TrendingUp, Brain } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
@@ -35,6 +35,10 @@ const Header = () => {
             <Link to="/dashboard" className="flex items-center text-gray-600 hover:text-gray-900">
               <User className="mr-2 h-4 w-4" />
               Dashboard
+            </Link>
+            <Link to="/ai-algorithm" className="flex items-center text-gray-600 hover:text-gray-900">
+              <Brain className="mr-2 h-4 w-4" />
+              AI Algorithm
             </Link>
           </nav>
           
