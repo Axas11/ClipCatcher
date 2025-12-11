@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share, Play } from 'lucide-react';
+import { Heart, MessageCircle, Share, Play, Eye } from 'lucide-react';
 
 const Feed = () => {
   const [clips, setClips] = useState([
@@ -46,7 +46,6 @@ const Feed = () => {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8">Trending Clips</h1>
-      
       <div className="space-y-6">
         {clips.map((clip) => (
           <Card key={clip.id} className="overflow-hidden">
@@ -55,7 +54,7 @@ const Feed = () => {
                 <img 
                   src={clip.thumbnail} 
                   alt={clip.title} 
-                  className="w-full h-64 md:h-full object-cover"
+                  className="w-full h-64 md:h-full object-cover" 
                 />
                 <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
                   {clip.duration}
@@ -67,11 +66,9 @@ const Feed = () => {
                   <Play className="h-4 w-4 text-white" />
                 </Button>
               </div>
-              
               <div className="md:w-1/2 p-6">
                 <h2 className="text-xl font-bold mb-2">{clip.title}</h2>
                 <p className="text-gray-600 mb-4">by {clip.username}</p>
-                
                 <div className="flex space-x-4 mb-6">
                   <div className="flex items-center text-gray-500">
                     <Eye className="mr-1 h-4 w-4" />
@@ -86,7 +83,6 @@ const Feed = () => {
                     {clip.comments}
                   </div>
                 </div>
-                
                 <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
