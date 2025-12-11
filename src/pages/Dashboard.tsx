@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Play, Heart, Eye, Coins } from 'lucide-react';
@@ -8,7 +8,32 @@ import { showSuccess, showError } from "@/utils/toast";
 const Dashboard = () => {
   const { toast } = useToast();
   const [tokens, setTokens] = useState(100);
-  const [clips, setClips] = useState([]);
+  const [clips, setClips] = useState([
+    {
+      id: 1,
+      title: "EPIC 4K Clutch in Valorant",
+      thumbnail: "/placeholder.svg",
+      views: 12500,
+      likes: 890,
+      duration: "0:32"
+    },
+    {
+      id: 2,
+      title: "First Blood of the Stream!",
+      thumbnail: "/placeholder.svg",
+      views: 8700,
+      likes: 650,
+      duration: "0:18"
+    },
+    {
+      id: 3,
+      title: "Unbelievable Ace Play",
+      thumbnail: "/placeholder.svg",
+      views: 15200,
+      likes: 1200,
+      duration: "0:45"
+    }
+  ]);
   const [videos, setVideos] = useState([]);
 
   const handleUpload = () => {
