@@ -81,6 +81,7 @@ whisper_models/
 # >>> EXCEPCIONES: modelos necesarios para la evaluacion
 !model/kill_detector.pt
 !models/kill_detector.pt
+!backend/detector/model/kill_detector.pt
 
 # ------------------------------------------------------------
 # Video, audio y media (archivos de prueba y de usuario)
