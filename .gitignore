@@ -214,6 +214,7 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
+
 # Linux
 *~
 .directory
@@ -256,3 +257,11 @@ lerna-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+# ------------------------------------------------------------
+# Documentacion personal de trabajo (NO subir al repo)
+# ------------------------------------------------------------
+# Planes y bitacora de uso interno: no entran en la entrega.
+PLAN.md
+PLAN_FAST.md
+PROGRESS.md
