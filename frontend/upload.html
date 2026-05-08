@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipCatcher · Subir vídeo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="dashboard.html"><span class="dot"></span>ClipCatcher</a>
+      <div class="row">
+        <span class="user-pill" id="user-pill">…</span>
+        <button class="btn btn-ghost" id="btn-logout" type="button">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <section class="card card-narrow" style="margin: 0 auto;">
+      <h1>Subir vídeo</h1>
+      <p class="lead">El procesamiento empieza automáticamente al terminar la subida.</p>
+
+      <div id="alert-slot"></div>
+
+      <form id="form-upload">
+        <div class="field">
+          <label for="file">Archivo de vídeo (.mp4, .mkv, .mov, …)</label>
+          <input id="file" name="file" type="file" accept="video/*" required>
+        </div>
+
+        <div id="progress-block" class="hidden">
+          <div class="row row-between">
+            <span class="mono" id="progress-label">0%</span>
+            <span class="mono" id="progress-bytes"></span>
+          </div>
+          <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+        </div>
+
+        <div class="spacer-md"></div>
+        <div class="row row-between">
+          <a class="btn btn-ghost" href="dashboard.html">Cancelar</a>
+          <button type="submit" class="btn btn-primary" id="btn-upload">Subir y procesar</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script type="module">
+    import { uploadVideo, getMe, ApiError } from './js/api.js';
+    import { requireAuth, logout } from './js/auth.js';
+
+    if (!requireAuth()) throw new Error('redirigiendo');
+
+    const userPill = document.getElementById('user-pill');
+    const form = document.getElementById('form-upload');
+    const fileInput = document.getElementById('file');
+    const btn = document.getElementById('btn-upload');
+    const alertSlot = document.getElementById('alert-slot');
+    const progressBlock = document.getElementById('progress-block');
+    const progressBar = document.getElementById('progress-bar');
+    const progressLabel = document.getElementById('progress-label');
+    const progressBytes = document.getElementById('progress-bytes');
+
+    document.getElementById('btn-logout').addEventListener('click', logout);
+
+    function showAlert(kind, msg) {
+      alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
+    }
+    function clearAlert() { alertSlot.innerHTML = ''; }
+
+    function fmtBytes(b) {
+      if (b < 1024) return `${b} B`;
+      if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+      return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    (async () => {
+      try {
+        const me = await getMe();
+        userPill.textContent = me.email;
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) return;
+        userPill.textContent = '—';
+      }
+    })();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAlert();
+      const file = fileInput.files[0];
+      if (!file) {
+        showAlert('error', 'Selecciona un archivo de vídeo.');
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Subiendo…';
+      fileInput.disabled = true;
+      progressBlock.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      progressLabel.textContent = '0%';
+      progressBytes.textContent = `0 / ${fmtBytes(file.size)}`;
+
+      try {
+        const video = await uploadVideo(file, (frac) => {
+          const pct = Math.round(frac * 100);
+          progressBar.style.width = pct + '%';
+          progressLabel.textContent = pct + '%';
+          progressBytes.textContent = `${fmtBytes(Math.round(frac * file.size))} / ${fmtBytes(file.size)}`;
+        });
+        showAlert('success', `Vídeo recibido (id=${video.id}). Redirigiendo…`);
+        location.replace(`video.html?id=${video.id}`);
+      } catch (err) {
+        let msg = err.detail || 'No se pudo subir el vídeo.';
+        if (err instanceof ApiError) {
+          if (err.status === 413) msg = 'El archivo supera el tamaño máximo permitido.';
+          else if (err.status === 400) msg = err.detail || 'El archivo no es válido.';
+        }
+        showAlert('error', msg);
+        btn.disabled = false; btn.textContent = 'Subir y procesar';
+        fileInput.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
