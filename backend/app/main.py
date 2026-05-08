@@ -8,6 +8,8 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import auth as auth_router
+from app.api import users as users_router
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import engine
@@ -48,6 +50,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(auth_router.router, prefix="/api")
+app.include_router(users_router.router, prefix="/api")
 
 
 @app.get("/health")
