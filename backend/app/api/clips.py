@@ -61,3 +61,19 @@ def download_clip(
         media_type="video/mp4",
         filename=f"clip_{clip.id}.mp4",
     )
+
+
+@router.get("/{clip_id}/stream")
+def stream_clip(
+    clip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Sirve el clip inline para incrustarlo en `<video>` HTML5.
+
+    A diferencia de `/download`, no fuerza ``Content-Disposition: attachment``,
+    asi el navegador lo reproduce. ``FileResponse`` ya soporta peticiones
+    Range nativamente para que el `<video>` pueda hacer seek.
+    """
+    _clip, path = _get_owned_clip(clip_id, db, current_user)
+    return FileResponse(path, media_type="video/mp4")
