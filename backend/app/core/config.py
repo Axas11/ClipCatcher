@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
     storage_path: str = "./data/storage"
-    max_upload_bytes: int = 2_147_483_648
+    max_upload_bytes: int = 10_737_418_240
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",
