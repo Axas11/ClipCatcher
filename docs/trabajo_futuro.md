@@ -149,6 +149,44 @@
 
 ---
 
+## Producto y experiencia de usuario
+
+### Editor de clips estilo TikTok
+- **Estado MVP:** No existe. Los clips se exportan tal cual los detecta el
+  motor (recorte temporal, manteniendo la composición original 16:9), y se
+  reproducen y descargan sin transformación adicional.
+- **Justificación:** Un editor con composición vertical (facecam + gameplay
+  apilados), subtítulos generados, y elementos visuales superpuestos exige
+  un pipeline de edición de vídeo significativamente más complejo (timeline
+  por capas, transcodificación, fuentes y assets) y multiplicaría el tiempo
+  de implementación. Descartado del MVP en la decisión de scope.
+- **Plan futuro:** Pipeline de edición server-side: capa de gameplay (recorte
+  vertical 9:16 del centro), capa de facecam (overlay si el usuario sube su
+  webcam), subtítulos auto-generados (Whisper, también en trabajo futuro),
+  marca de agua opcional. Plantillas predefinidas por tipo de highlight
+  (1v1, multikill, clutch). Edición no destructiva sobre el vídeo original.
+
+### Configuración mínima de cuenta con ajuste de sensibilidad (F6X)
+- **Estado MVP:** No hay panel de configuración. El umbral de detección y
+  los parámetros del clipping (`margen_clip`, `duracion_clip`,
+  `chain_window`) son globales y vienen del `config.json` del módulo
+  `detector`.
+- **Justificación:** Para validar el flujo end-to-end de la entrega no hace
+  falta personalización. La sensibilidad por defecto funciona bien en los
+  vídeos de prueba.
+- **Plan futuro (F6X, programada para el fin de semana antes de la entrega):**
+  Página `/account.html` con dos controles mínimos:
+  - **Sensibilidad de detección** (slider o tres niveles preset:
+    "Conservadora / Equilibrada / Generosa") que ajusta el umbral del
+    clasificador binario antes de marcar un frame como kill.
+  - **Margen y duración** del clip resultante.
+  Persistencia en una nueva tabla `user_settings` ligada al `User`. El
+  detector lee la configuración del usuario en lugar de la global cuando
+  procesa cada vídeo. Si por tiempo no se llega, queda como primera tarea
+  post-entrega.
+
+---
+
 ## Frontend
 
 ### React / TypeScript / Tailwind / shadcn
@@ -191,8 +229,10 @@
 | Migraciones | `create_all` al arrancar | Alembic |
 | Cola | `BackgroundTasks` | Redis + RQ |
 | Auth | Email + password + JWT | + Google OAuth |
-| Análisis visual | CNN ResNet18 (killfeed) | Igual |
+| Análisis visual | CNN ResNet18 (killfeed) | + pipeline reproducible + chain window por juego |
 | Análisis audio | — | Whisper + librosa (opt-in) |
+| Edición | Recorte temporal directo | Editor estilo TikTok (vertical, facecam, subtítulos) |
+| Configuración por usuario | Globales en `config.json` | Tabla `user_settings` (sensibilidad, margen, duración) |
 | Frontend | HTML/CSS/JS plano | React + Vite (opcional) |
 | Negocio | Sin créditos / sin planes | Modelo de suscripción |
 | Tests | Verificación manual | `pytest` + integración |
