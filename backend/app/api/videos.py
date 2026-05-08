@@ -26,7 +26,7 @@ from app.models.video import (
     VIDEO_STATUS_UPLOADED,
     Video,
 )
-from app.schemas.video import VideoOut
+from app.schemas.video import VideoDetail, VideoOut
 from app.services.processor import process_video
 
 logger = logging.getLogger(__name__)
@@ -135,3 +135,19 @@ def list_videos(
         .order_by(Video.uploaded_at.desc())
         .all()
     )
+
+
+@router.get("/{video_id}", response_model=VideoDetail)
+def get_video(
+    video_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Video:
+    """Devuelve un video con sus clips. 404 si no existe o no es del usuario."""
+    video = db.get(Video, video_id)
+    if video is None or video.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="video no encontrado",
+        )
+    return video
