@@ -121,3 +121,17 @@ def upload_video(
         total,
     )
     return video
+
+
+@router.get("", response_model=list[VideoOut])
+def list_videos(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[Video]:
+    """Lista los videos del usuario actual ordenados por subida descendente."""
+    return (
+        db.query(Video)
+        .filter(Video.user_id == current_user.id)
+        .order_by(Video.uploaded_at.desc())
+        .all()
+    )
