@@ -1,0 +1,469 @@
+/* ClipCatcher - hoja de estilos base.
+ * Paleta y tipografias derivadas de la maqueta de propuesta PIDAW
+ * (clipcatcher_pidaw.html, mantenida fuera del repo). Tema dark con
+ * acentos neon cian/morado. */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --bg-deep: #07080f;
+  --bg-card: #0f1320;
+  --bg-card-2: #131829;
+  --border: #1f2540;
+  --border-soft: #2a3152;
+  --text: #e8ecf7;
+  --text-mute: #8a93b3;
+  --cyan: #00e0ff;
+  --purple: #a855f7;
+  --magenta: #d946ef;
+  --indigo: #6d6efc;
+  --danger: #f87171;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --gradient: linear-gradient(120deg, #00e0ff 0%, #6d6efc 50%, #d946ef 100%);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 8px 32px rgba(0, 0, 0, 0.4);
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-weight: 300;
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  /* Fondo decorativo: glow neon arriba a izquierda y derecha. */
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(900px 320px at 15% 0%, rgba(0, 224, 255, 0.10), transparent 60%),
+    radial-gradient(900px 320px at 85% 0%, rgba(217, 70, 239, 0.10), transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============ Layout ============ */
+
+.app-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 28px 64px;
+}
+
+.auth-shell {
+  /* Para index.html: login/registro centrados verticalmente. */
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-size: 28px;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 224, 255, 0.7);
+  -webkit-text-fill-color: var(--cyan);
+}
+
+.user-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-mute);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 224, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(0, 224, 255, 0.06);
+}
+
+/* ============ Tipografia ============ */
+
+h1, h2, h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+h1 { font-size: 36px; line-height: 1.1; margin-bottom: 8px; }
+h2 { font-size: 22px; margin-bottom: 14px; }
+h3 { font-size: 16px; margin-bottom: 8px; }
+
+.lead {
+  font-size: 16px;
+  color: var(--text-mute);
+  font-weight: 300;
+  margin-bottom: 24px;
+  max-width: 640px;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-mute); }
+
+/* ============ Cards ============ */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--gradient);
+  opacity: 0.5;
+}
+
+.card-narrow { max-width: 460px; width: 100%; }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.video-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  transition: border-color 0.15s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.video-card:hover {
+  border-color: var(--border-soft);
+  transform: translateY(-2px);
+}
+
+.video-card a { color: var(--text); }
+
+.video-card .filename {
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.video-card .meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-mute);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.video-card .clip-count {
+  color: var(--cyan);
+}
+
+.clip-card {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clip-card video {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+}
+
+.clip-card .clip-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+/* ============ Formularios ============ */
+
+label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-mute);
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="file"] {
+  width: 100%;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  padding: 12px 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.15);
+}
+
+input[type="file"] {
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.field { margin-bottom: 18px; }
+
+/* ============ Botones ============ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 15px;
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-card-2);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+  text-decoration: none;
+}
+
+.btn:hover { border-color: var(--cyan); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--gradient);
+  border: none;
+  color: #07080f;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 20px rgba(0, 224, 255, 0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-mute);
+}
+
+.btn-block { width: 100%; }
+
+/* ============ Tabs (login/registro) ============ */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-mute);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+
+.tab.active {
+  background: var(--bg-card);
+  color: var(--text);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+/* ============ Alerts ============ */
+
+.alert {
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card-2);
+}
+
+.alert-error { border-color: rgba(248, 113, 113, 0.4); color: var(--danger); }
+.alert-success { border-color: rgba(52, 211, 153, 0.4); color: var(--success); }
+.alert-info { border-color: rgba(0, 224, 255, 0.4); color: var(--cyan); }
+
+/* ============ Status badges (videos) ============ */
+
+.status {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+}
+
+.status-uploaded { color: var(--text-mute); }
+.status-processing { color: var(--warning); border-color: rgba(251, 191, 36, 0.4); }
+.status-done { color: var(--success); border-color: rgba(52, 211, 153, 0.4); }
+.status-failed { color: var(--danger); border-color: rgba(248, 113, 113, 0.4); }
+
+/* ============ Spinner / progreso ============ */
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(0, 224, 255, 0.2);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.processing-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card-2);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  color: var(--text-mute);
+  font-size: 14px;
+}
+
+.progress {
+  height: 8px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--gradient);
+  width: 0%;
+  transition: width 0.2s ease-out;
+}
+
+/* ============ Empty states ============ */
+
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-mute);
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.empty h3 { color: var(--text); }
+
+.empty .btn { margin-top: 16px; }
+
+/* ============ Utils ============ */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.row-end { justify-content: flex-end; }
+.row-between { justify-content: space-between; }
+
+.spacer-sm { height: 12px; }
+.spacer-md { height: 24px; }
+
+.hidden { display: none !important; }
+
+.text-mute { color: var(--text-mute); }
+.text-center { text-align: center; }
+
+/* Responsive: ajusta paddings en mobile. */
+@media (max-width: 600px) {
+  .app-shell { padding: 16px 14px 48px; }
+  h1 { font-size: 28px; }
+  .card { padding: 22px; }
+}
