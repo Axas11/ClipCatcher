@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipCatcher · Detalle de vídeo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="dashboard.html"><span class="dot"></span>ClipCatcher</a>
+      <div class="row">
+        <span class="user-pill" id="user-pill">…</span>
+        <button class="btn btn-ghost" id="btn-logout" type="button">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <section>
+      <div class="row" style="margin-bottom: 14px;">
+        <a class="btn btn-ghost" href="dashboard.html">← Volver</a>
+      </div>
+
+      <div id="alert-slot"></div>
+
+      <div id="detail-slot">
+        <div class="row" style="justify-content: center; padding: 40px 0;">
+          <span class="spinner"></span>
+          <span class="text-mute">Cargando detalle…</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { getVideo, getMe, fetchClipBlobUrl, ApiError } from './js/api.js';
+    import { requireAuth, logout } from './js/auth.js';
+
+    if (!requireAuth()) throw new Error('redirigiendo');
+
+    const POLL_MS = 5000;
+    const params = new URLSearchParams(location.search);
+    const videoId = parseInt(params.get('id'), 10);
+
+    const userPill = document.getElementById('user-pill');
+    const slot = document.getElementById('detail-slot');
+    const alertSlot = document.getElementById('alert-slot');
+    document.getElementById('btn-logout').addEventListener('click', logout);
+
+    if (!videoId || Number.isNaN(videoId)) {
+      slot.innerHTML = `<div class="alert alert-error">URL inválida: falta el id del vídeo.</div>`;
+      throw new Error('id invalido');
+    }
+
+    function showAlert(kind, msg) {
+      alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
+    }
+    function clearAlert() { alertSlot.innerHTML = ''; }
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString('es-ES'); } catch (_) { return iso; }
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    let pollTimer = null;
+    let loadedClipUrls = new Set();  // para revocar object URLs al recargar
+
+    function renderProcessing(video) {
+      const since = video.uploaded_at ? `desde ${fmtDate(video.uploaded_at)}` : '';
+      slot.innerHTML = `
+        <h1>${escapeHtml(video.original_filename)}</h1>
+        <p class="mono">#${video.id} · subido ${since}</p>
+        <div class="processing-banner">
+          <span class="spinner"></span>
+          <div>
+            <strong>Procesando…</strong> ClipCatcher está analizando los frames y generando los clips.
+            Refrescamos automáticamente cada ${POLL_MS / 1000} s.
+          </div>
+        </div>
+        <p class="text-mute">Estado actual: <span class="status status-${video.status}">${video.status}</span></p>`;
+    }
+
+    function renderFailed(video) {
+      slot.innerHTML = `
+        <h1>${escapeHtml(video.original_filename)}</h1>
+        <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)}</p>
+        <div class="alert alert-error">
+          <strong>El procesamiento ha fallado.</strong>
+          Revisa los logs del backend o intenta subir el vídeo de nuevo.
+        </div>`;
+    }
+
+    async function renderDone(video) {
+      const clipsHtml = video.clips.length
+        ? `<div class="card-grid" id="clips-grid"></div>`
+        : `<div class="empty">
+             <h3>El vídeo se procesó sin highlights detectados.</h3>
+             <p>El detector visual no encontró kills en el killfeed. Prueba con otra grabación.</p>
+           </div>`;
+      slot.innerHTML = `
+        <h1>${escapeHtml(video.original_filename)}</h1>
+        <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)} · procesado ${fmtDate(video.processed_at)}</p>
+        <div class="row" style="margin-bottom: 18px;">
+          <span class="status status-done">done</span>
+          <span class="text-mute">${video.clips.length} clip(s) generados</span>
+        </div>
+        ${clipsHtml}`;
+
+      if (!video.clips.length) return;
+
+      const grid = document.getElementById('clips-grid');
+      // Render skeleton inicial.
+      grid.innerHTML = video.clips.map(c => `
+        <div class="clip-card" data-clip-id="${c.id}">
+          <div class="clip-meta">clip #${c.id} · ${c.start_time.toFixed(1)}s → ${c.end_time.toFixed(1)}s · ${(c.end_time - c.start_time).toFixed(1)}s</div>
+          <div class="row" style="justify-content: center; padding: 30px 0;">
+            <span class="spinner"></span>
+            <span class="text-mute">Cargando…</span>
+          </div>
+        </div>`).join('');
+
+      // Carga blob URLs en paralelo y rellena cada card.
+      await Promise.all(video.clips.map(async (c) => {
+        const card = grid.querySelector(`[data-clip-id="${c.id}"]`);
+        try {
+          const streamUrl = await fetchClipBlobUrl(c.id, 'stream');
+          loadedClipUrls.add(streamUrl);
+          card.innerHTML = `
+            <div class="clip-meta">clip #${c.id} · ${c.start_time.toFixed(1)}s → ${c.end_time.toFixed(1)}s · ${(c.end_time - c.start_time).toFixed(1)}s</div>
+            <video controls preload="metadata" src="${streamUrl}"></video>
+            <div class="row row-end">
+              <button class="btn" data-download="${c.id}" type="button">Descargar</button>
+            </div>`;
+          card.querySelector('[data-download]').addEventListener('click', () => downloadClip(c.id));
+        } catch (err) {
+          card.innerHTML = `
+            <div class="clip-meta">clip #${c.id}</div>
+            <div class="alert alert-error">No se pudo cargar el clip (${err.detail || err.message}).</div>`;
+        }
+      }));
+    }
+
+    async function downloadClip(clipId) {
+      try {
+        const url = await fetchClipBlobUrl(clipId, 'download');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `clip_${clipId}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        // Liberar la URL despues de un margen (descarga ya iniciada).
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      } catch (err) {
+        showAlert('error', `No se pudo descargar el clip: ${err.detail || err.message}`);
+      }
+    }
+
+    function revokeLoadedUrls() {
+      for (const u of loadedClipUrls) URL.revokeObjectURL(u);
+      loadedClipUrls.clear();
+    }
+
+    async function refresh() {
+      try {
+        const video = await getVideo(videoId);
+        clearAlert();
+        if (video.status === 'done') {
+          revokeLoadedUrls();
+          await renderDone(video);
+          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        } else if (video.status === 'failed') {
+          renderFailed(video);
+          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        } else {
+          renderProcessing(video);
+        }
+      } catch (err) {
+        slot.innerHTML = '';
+        if (err instanceof ApiError && err.status === 404) {
+          showAlert('error', 'Vídeo no encontrado o sin permiso para verlo.');
+        } else {
+          showAlert('error', err.detail || 'Error cargando el detalle.');
+        }
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      }
+    }
+
+    (async () => {
+      try {
+        const me = await getMe();
+        userPill.textContent = me.email;
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) return;
+        userPill.textContent = '—';
+      }
+      await refresh();
+      pollTimer = setInterval(refresh, POLL_MS);
+    })();
+
+    window.addEventListener('beforeunload', revokeLoadedUrls);
+  </script>
+</body>
+</html>
