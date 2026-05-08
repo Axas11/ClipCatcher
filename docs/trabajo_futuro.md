@@ -88,6 +88,54 @@
 
 ---
 
+## Modelo de detección visual y reglas de clip
+
+### Pipeline de entrenamiento del modelo
+- **Estado MVP:** El clasificador `kill_detector.pt` (ResNet18 con head binario)
+  se entrenó **a mano** con un dataset propio de capturas del killfeed de
+  Valorant, etiquetadas manualmente en dos carpetas (`kill/` y `no-kill/`).
+  El proceso de entrenamiento, las hiperparámetros y la división train/val
+  vivieron en un cuaderno/script puntual fuera del repo; en el MVP solo se
+  usa el `.pt` resultante.
+- **Justificación:** Para el TFG basta con un modelo congelado que demuestre
+  el pipeline de inferencia y la cadena end-to-end. Reproducir el entrenamiento
+  exigiría compartir el dataset (decenas de miles de imágenes), versionarlo, y
+  documentar el setup de GPU — fuera del scope del MVP.
+- **Plan futuro:**
+  - Automatizar el pipeline en un script reproducible (`scripts/train.py` o
+    similar): carga del dataset desde una ruta configurable, división
+    train/val (estratificada), training loop con `torch` + `torchvision`,
+    early stopping y guardado del mejor checkpoint en
+    `backend/detector/model/`.
+  - Reportar **precisión y recall** sobre un conjunto de validación
+    independiente, además de matriz de confusión y curva PR. Estas métricas
+    deben quedar versionadas (p.ej. `model_card.md` junto al `.pt`).
+  - Ampliar el dataset con capturas de más partidas, más jugadores y más
+    resoluciones; programar **reentrenamiento periódico** cuando el killfeed
+    cambie de aspecto (parches del juego, eventos especiales).
+  - Considerar exportar a ONNX para inferencia más rápida y portabilidad.
+
+### Chain window configurable por usuario/juego
+- **Estado MVP:** El parámetro `chain_window` (6 s) — la distancia máxima
+  entre dos detecciones consecutivas para encadenarlas en un mismo clip — está
+  hardcodeado como constante (`_CHAIN_WINDOW_S`) en
+  `backend/detector/analyzer.py`. `config.json` solo expone `margen_clip` y
+  `duracion_clip`.
+- **Justificación:** El valor 6 s refleja la dinámica de Valorant (multikills
+  típicas en menos de 6 s entre frags). Para el MVP no hay multi-juego ni
+  perfiles de usuario, así que un único valor sirve.
+- **Plan futuro:**
+  - Mover `chain_window` a la configuración persistida (BD o `config.json`),
+    con valores **por defecto distintos por juego** (Valorant 6 s, CS2 8 s,
+    LoL 15 s, etc.). El detector recibiría el juego como argumento.
+  - Permitir que cada usuario sobrescriba el valor en sus preferencias
+    (estilo "highlights cortos punzantes" vs "clips narrativos largos").
+  - Exponerlo en la UI de subida del frontend como un selector con presets
+    por juego + override avanzado.
+  - Aplicar el mismo principio a `margen_clip` y `duracion_clip`.
+
+---
+
 ## Negocio y monetización
 
 ### Sistema de créditos, planes y suscripciones
