@@ -14,8 +14,11 @@ email-validator==2.2.0
 python-dotenv==1.0.1
 
 # --- Autenticacion (JWT + hashing de contraseñas) ---
+# bcrypt pinneado a 4.0.1 porque passlib 1.7.4 no es compatible con bcrypt 4.1+
+# (passlib lleva sin actualizarse desde 2020).
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+passlib==1.7.4
+bcrypt==4.0.1
 
 # --- Vision por computador (motor del detector) ---
 torch==2.5.1
