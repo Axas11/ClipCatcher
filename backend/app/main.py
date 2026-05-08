@@ -7,6 +7,7 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api import auth as auth_router
 from app.api import clips as clips_router
@@ -16,6 +17,8 @@ from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import engine
 from app import models  # noqa: F401  (registra los modelos en Base.metadata)
+
+_FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,6 +64,13 @@ app.include_router(clips_router.router, prefix="/api")
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health() -> dict[str, str]:
     """Healthcheck simple para comprobar que la API responde."""
     return {"status": "ok"}
+
+
+# Frontend estatico montado en `/`. Debe ir DESPUES de los routers e
+# `@app.get` para que las rutas /api/* y /health tengan prioridad sobre
+# el catch-all del mount. `html=True` hace que `GET /` sirva index.html.
+app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
