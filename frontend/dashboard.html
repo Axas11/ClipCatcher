@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipCatcher · Mis vídeos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="dashboard.html"><span class="dot"></span>ClipCatcher</a>
+      <div class="row">
+        <span class="user-pill" id="user-pill">…</span>
+        <button class="btn btn-ghost" id="btn-logout" type="button">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <section>
+      <div class="row row-between" style="margin-bottom: 22px;">
+        <div>
+          <h1>Mis vídeos</h1>
+          <p class="lead">Sube un vídeo y ClipCatcher detectará los highlights.</p>
+        </div>
+        <a class="btn btn-primary" href="upload.html">Subir nuevo vídeo</a>
+      </div>
+
+      <div id="alert-slot"></div>
+
+      <div id="videos-slot">
+        <div class="row" style="justify-content: center; padding: 40px 0;">
+          <span class="spinner"></span>
+          <span class="text-mute">Cargando vídeos…</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { listVideos, getMe, ApiError } from './js/api.js';
+    import { requireAuth, logout } from './js/auth.js';
+
+    if (!requireAuth()) throw new Error('redirigiendo');
+
+    const userPill = document.getElementById('user-pill');
+    const slot = document.getElementById('videos-slot');
+    const alertSlot = document.getElementById('alert-slot');
+    document.getElementById('btn-logout').addEventListener('click', logout);
+
+    function showAlert(kind, msg) {
+      alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
+    }
+
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString('es-ES'); } catch (_) { return iso; }
+    }
+
+    function renderVideos(videos) {
+      if (!videos.length) {
+        slot.innerHTML = `
+          <div class="empty">
+            <h3>Aún no tienes vídeos</h3>
+            <p>Sube tu primera grabación para empezar a generar clips.</p>
+            <a class="btn btn-primary" href="upload.html">Subir vídeo</a>
+          </div>`;
+        return;
+      }
+      const cards = videos.map(v => {
+        const status = v.status || 'uploaded';
+        return `
+          <a class="video-card" href="video.html?id=${v.id}">
+            <span class="filename">${escapeHtml(v.original_filename)}</span>
+            <div class="meta">
+              <span>#${v.id}</span>
+              <span class="status status-${status}">${status}</span>
+            </div>
+            <div class="meta">
+              <span>${fmtDate(v.uploaded_at)}</span>
+            </div>
+          </a>`;
+      }).join('');
+      slot.innerHTML = `<div class="card-grid">${cards}</div>`;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    (async () => {
+      try {
+        const me = await getMe();
+        userPill.textContent = me.email;
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) return;
+        userPill.textContent = '—';
+      }
+      try {
+        const videos = await listVideos();
+        renderVideos(videos);
+      } catch (err) {
+        slot.innerHTML = '';
+        showAlert('error', err.detail || 'No se pudieron cargar los vídeos.');
+      }
+    })();
+  </script>
+</body>
+</html>
