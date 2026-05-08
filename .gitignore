@@ -244,3 +244,15 @@ $RECYCLE.BIN/
 docs/_build/
 docs/build/
 site/
+
+# ------------------------------------------------------------
+# Vite / extras del frontend remoto
+# ------------------------------------------------------------
+dist-ssr
+*.local
+lerna-debug.log*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
