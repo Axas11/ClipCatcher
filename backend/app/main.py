@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import engine
+from app import models  # noqa: F401  (registra los modelos en Base.metadata)
 
 logging.basicConfig(
     level=logging.INFO,
