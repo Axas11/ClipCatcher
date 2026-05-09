@@ -1,8 +1,9 @@
-/* Slider component (F10.1).
+/* Slider component (F10.1, F10-fix #2).
  *
  * Construye un slider tematizado con label uppercase, valor formateado
- * a la derecha, tooltip flotante encima del thumb y marcas min/max
- * debajo. La posicion del tooltip se actualiza en cada `input` event.
+ * a la derecha y marcas min/max debajo. El value display arriba a la
+ * derecha es la unica representacion del valor — el tooltip flotante
+ * sobre el thumb se elimino en F10-fix porque duplicaba el dato.
  *
  * Uso:
  *   import { mountSlider } from './slider.js';
@@ -46,7 +47,6 @@ export function mountSlider(opts) {
     <div class="slider-track-wrap">
       <input type="range" class="slider" id="${sliderId}"
              min="${min}" max="${max}" step="${step}" value="${value}">
-      <span class="slider-tooltip"></span>
     </div>
     <div class="slider-marks">
       <span>${format(min)}</span>
@@ -57,7 +57,6 @@ export function mountSlider(opts) {
   const labelEl = root.querySelector('.field-label');
   const valueEl = root.querySelector('.slider-value');
   const inputEl = root.querySelector('input.slider');
-  const tooltipEl = root.querySelector('.slider-tooltip');
   const hintEl = root.querySelector('.field-hint');
 
   labelEl.textContent = label;
@@ -65,15 +64,7 @@ export function mountSlider(opts) {
   if (!hint) hintEl.style.display = 'none';
 
   const updateUI = (v) => {
-    const formatted = format(v);
-    valueEl.textContent = formatted;
-    tooltipEl.textContent = formatted;
-    // Posicion del tooltip: pct entre min y max. Aceptamos ±~10px de
-    // deriva en los extremos por el tamano finito del thumb (20px); a
-    // efectos visuales no se nota porque el tooltip queda centrado
-    // sobre el thumb dentro del rango interno y la transicion es suave.
-    const pct = (Number(v) - Number(min)) / (Number(max) - Number(min));
-    tooltipEl.style.left = `${pct * 100}%`;
+    valueEl.textContent = format(v);
   };
 
   inputEl.addEventListener('input', () => {
@@ -81,15 +72,6 @@ export function mountSlider(opts) {
     updateUI(v);
     if (typeof onChange === 'function') onChange(v);
   });
-
-  // Mostrar tooltip mientras el slider tiene foco activo (drag de teclado).
-  inputEl.addEventListener('focus', () => root.classList.add('is-active'));
-  inputEl.addEventListener('blur', () => root.classList.remove('is-active'));
-  // Idem para mousedown sostenido (algunos navegadores no disparan focus).
-  inputEl.addEventListener('mousedown', () => root.classList.add('is-active'));
-  inputEl.addEventListener('mouseup', () => root.classList.remove('is-active'));
-  inputEl.addEventListener('touchstart', () => root.classList.add('is-active'), { passive: true });
-  inputEl.addEventListener('touchend', () => root.classList.remove('is-active'));
 
   // Estado inicial.
   updateUI(value);
