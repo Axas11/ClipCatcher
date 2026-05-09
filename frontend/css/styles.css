@@ -771,6 +771,67 @@ input[type="file"] {
 }
 .video-card .btn-card-delete svg { width: 14px; height: 14px; }
 
+/* ============ Panel de stats (F9.4) ============
+ * 3 stat cards en grid horizontal en el dashboard. Mismo radius/border
+ * que las cards de video pero mas compactas y con la cifra grande en cyan. */
+
+.stats-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+@media (max-width: 700px) {
+  .stats-panel { grid-template-columns: 1fr; }
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 224, 255, 0.08);
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+.stat-icon svg { width: 20px; height: 20px; }
+
+.stat-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--cyan);
+  font-family: 'Syne', sans-serif;
+  line-height: 1;
+  margin-top: 4px;
+}
+
 /* ============ Status badges (videos) ============ */
 
 .status {

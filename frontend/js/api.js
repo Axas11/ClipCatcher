@@ -81,6 +81,11 @@ export async function googleAuthAvailable() {
   return Boolean(body && body.available);
 }
 
+export async function getMyStats() {
+  const res = await _request('/users/me/stats');
+  return res.json();
+}
+
 export async function getMySettings() {
   const res = await _request('/users/me/settings');
   return res.json();

@@ -43,6 +43,10 @@
 
       <div id="alert-slot"></div>
 
+      <!-- Panel de stats (F9.4). Lo rellena renderStats() y se queda
+           oculto si videos_count == 0 (cuenta nueva). -->
+      <div id="stats-slot" class="hidden"></div>
+
       <div id="videos-slot">
         <div class="card-grid" id="skeleton-grid">
           <!-- 3 skeleton cards animadas mientras llega listVideos(). -->
@@ -68,7 +72,7 @@
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
-    import { listVideos, getMe, deleteVideo, ApiError } from './js/api.js';
+    import { listVideos, getMe, getMyStats, deleteVideo, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
     import { confirmModal } from './js/modal.js';
@@ -89,7 +93,57 @@
     const userPill = document.getElementById('user-pill');
     const slot = document.getElementById('videos-slot');
     const alertSlot = document.getElementById('alert-slot');
+    const statsSlot = document.getElementById('stats-slot');
     document.getElementById('btn-logout').addEventListener('click', logout);
+
+    // Iconos inline (no Lucide CDN) para que el panel de stats se pinte
+    // de inmediato sin esperar a createIcons() en cada refresh.
+    const ICON_VIDEO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>';
+    const ICON_SCISSORS = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>';
+    const ICON_CLOCK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
+    function fmtAvg(seconds) {
+      if (seconds == null) return '—';
+      if (seconds < 60) return `${seconds.toFixed(1)}s`;
+      const m = Math.floor(seconds / 60);
+      const s = Math.round(seconds % 60);
+      return `${m}m ${s}s`;
+    }
+
+    function renderStats(stats) {
+      // Si la cuenta es nueva (sin videos), ocultar el panel — solo
+      // empieza a tener sentido cuando hay datos reales.
+      if (!stats || !stats.videos_count) {
+        statsSlot.classList.add('hidden');
+        statsSlot.innerHTML = '';
+        return;
+      }
+      statsSlot.classList.remove('hidden');
+      statsSlot.innerHTML = `
+        <div class="stats-panel">
+          <div class="stat-card">
+            <span class="stat-icon">${ICON_VIDEO}</span>
+            <div class="stat-text">
+              <span class="stat-label">Vídeos procesados</span>
+              <span class="stat-value">${stats.videos_count}</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">${ICON_SCISSORS}</span>
+            <div class="stat-text">
+              <span class="stat-label">Clips generados</span>
+              <span class="stat-value">${stats.clips_count}</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">${ICON_CLOCK}</span>
+            <div class="stat-text">
+              <span class="stat-label">Tiempo medio</span>
+              <span class="stat-value">${fmtAvg(stats.avg_processing_seconds)}</span>
+            </div>
+          </div>
+        </div>`;
+    }
 
     function showAlert(kind, msg) {
       alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
@@ -168,9 +222,13 @@
           try {
             await deleteVideo(id);
             showToast('Vídeo eliminado', 'success');
-            // Recargar la lista para reflejar el estado.
-            const fresh = await listVideos();
+            // Recargar lista y stats en paralelo para reflejar el estado.
+            const [fresh, freshStats] = await Promise.all([
+              listVideos(),
+              getMyStats().catch(() => null),
+            ]);
             renderVideos(fresh);
+            if (freshStats) renderStats(freshStats);
           } catch (err) {
             const msg = err.detail || err.message || 'No se pudo borrar el vídeo.';
             showToast(msg, 'error', 5000);
@@ -204,8 +262,21 @@
         userPill.textContent = '—';
       }
       try {
-        const videos = await listVideos();
-        renderVideos(videos);
+        // Cargar lista y stats en paralelo. Si stats falla no rompemos
+        // el dashboard (Promise.allSettled).
+        const [videosRes, statsRes] = await Promise.allSettled([
+          listVideos(),
+          getMyStats(),
+        ]);
+        if (videosRes.status === 'fulfilled') {
+          renderVideos(videosRes.value);
+        } else {
+          slot.innerHTML = '';
+          showAlert('error', videosRes.reason?.detail || 'No se pudieron cargar los vídeos.');
+        }
+        if (statsRes.status === 'fulfilled') {
+          renderStats(statsRes.value);
+        }
       } catch (err) {
         slot.innerHTML = '';
         showAlert('error', err.detail || 'No se pudieron cargar los vídeos.');
