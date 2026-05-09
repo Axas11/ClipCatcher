@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur"/>
+      <feFlood flood-color="#a855f7" flood-opacity="0.85"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="#07080f"/>
+  <text x="32" y="46" text-anchor="middle"
+        font-family="'Syne','Outfit',system-ui,sans-serif"
+        font-size="44" font-weight="800"
+        fill="#00e0ff" filter="url(#halo)">C</text>
+</svg>
