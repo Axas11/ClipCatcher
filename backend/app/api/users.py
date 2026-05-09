@@ -11,6 +11,7 @@ from app.models.clip import Clip
 from app.models.user import User
 from app.models.video import VIDEO_STATUS_DONE, Video
 from app.schemas.user import (
+    ActivityEvent,
     PasswordChangeRequest,
     UserOut,
     UserProfileUpdate,
@@ -18,6 +19,7 @@ from app.schemas.user import (
     UserSettingsUpdate,
     UserStats,
 )
+from app.models.video import VIDEO_STATUS_FAILED
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -110,6 +112,58 @@ def change_my_password(
 def read_my_settings(current_user: User = Depends(get_current_user)) -> User:
     """Devuelve la configuracion del detector del usuario actual."""
     return current_user
+
+
+@router.get("/me/activity", response_model=list[ActivityEvent])
+def read_my_activity(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[ActivityEvent]:
+    """Devuelve los ultimos eventos del usuario, mas recientes primero (F12.2).
+
+    Sin tabla de eventos: derivamos la actividad de las columnas
+    timestamp existentes en `videos`. Cada video produce hasta 2
+    eventos:
+    - `video_uploaded` con `uploaded_at`.
+    - `video_done` o `video_failed` con `processed_at` (si existe).
+
+    Limitado a 5 eventos para no saturar el dashboard. Se ordena por
+    timestamp descendente y se trunca despues de mezclar las dos
+    listas (uploads y completions).
+    """
+    videos = (
+        db.query(Video)
+        .filter(Video.user_id == current_user.id)
+        .order_by(Video.uploaded_at.desc())
+        .limit(20)
+        .all()
+    )
+    events: list[ActivityEvent] = []
+    for v in videos:
+        events.append(ActivityEvent(
+            type="video_uploaded",
+            timestamp=v.uploaded_at,
+            video_id=v.id,
+            video_filename=v.original_filename,
+        ))
+        if v.processed_at is not None:
+            if v.status == VIDEO_STATUS_DONE:
+                events.append(ActivityEvent(
+                    type="video_done",
+                    timestamp=v.processed_at,
+                    video_id=v.id,
+                    video_filename=v.original_filename,
+                    clips_count=len(v.clips),
+                ))
+            elif v.status == VIDEO_STATUS_FAILED:
+                events.append(ActivityEvent(
+                    type="video_failed",
+                    timestamp=v.processed_at,
+                    video_id=v.id,
+                    video_filename=v.original_filename,
+                ))
+    events.sort(key=lambda e: e.timestamp, reverse=True)
+    return events[:5]
 
 
 @router.get("/me/stats", response_model=UserStats)

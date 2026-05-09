@@ -81,3 +81,13 @@ class UserStats(BaseModel):
     videos_count: int
     clips_count: int
     avg_processing_seconds: float | None = None  # None si aun no hay videos done
+
+
+class ActivityEvent(BaseModel):
+    """Evento individual del timeline de actividad reciente (F12.2)."""
+
+    type: str  # "video_uploaded" | "video_done" | "video_failed"
+    timestamp: datetime
+    video_id: int | None = None
+    video_filename: str | None = None
+    clips_count: int | None = None  # solo en video_done
