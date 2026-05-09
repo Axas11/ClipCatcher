@@ -16,11 +16,15 @@
  *   hace fade-in. Excluye links externos, anchors y hash links.
  */
 
-/* IntersectionObserver perezoso (compartido). */
+/* IntersectionObserver compartido entre llamadas. La funcion es
+ * idempotente: cada vez que se llama, busca elementos .reveal-on-scroll
+ * que aun no esten observados y los engancha al observer existente.
+ * Asi paginas que renderizan cards dinamicamente (dashboard) pueden
+ * llamar a initRevealOnScroll() tras cada render sin duplicar listeners. */
 let _revealObs = null;
+const _observed = new WeakSet();
 
 export function initRevealOnScroll() {
-  if (_revealObs) return _revealObs;
   if (typeof IntersectionObserver === 'undefined') {
     // Fallback navegadores muy antiguos: marca todo como visible.
     document.querySelectorAll('.reveal-on-scroll').forEach(el => {
@@ -28,16 +32,22 @@ export function initRevealOnScroll() {
     });
     return null;
   }
-  _revealObs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        _revealObs.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.reveal-on-scroll').forEach(el => _revealObs.observe(el));
+  if (!_revealObs) {
+    _revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          _revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  }
+  document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+    if (_observed.has(el)) return;
+    if (el.classList.contains('is-visible')) return;  // ya marcado a mano
+    _observed.add(el);
+    _revealObs.observe(el);
+  });
   return _revealObs;
 }
 
