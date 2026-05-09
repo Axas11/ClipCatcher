@@ -56,6 +56,15 @@
   <script type="module">
     import { listVideos, getMe, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
+    import { showToast } from './js/toast.js';
+
+    // Drena toasts dejados por otras paginas (login OAuth, upload, etc).
+    // Se hace antes del primer render para que aparezcan inmediatamente.
+    const _toastOAuth = sessionStorage.getItem('toast.oauth.success');
+    if (_toastOAuth) {
+      sessionStorage.removeItem('toast.oauth.success');
+      showToast(_toastOAuth, 'success');
+    }
 
     if (!requireAuth()) throw new Error('redirigiendo');
 

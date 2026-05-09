@@ -84,6 +84,7 @@
   <script type="module">
     import { login, register, googleAuthAvailable, ApiError } from './js/api.js';
     import { saveToken, getToken } from './js/auth.js';
+    import { showToast } from './js/toast.js';
 
     const googleBlock = document.getElementById('google-block');
     const alertSlot = document.getElementById('alert-slot');
@@ -100,15 +101,21 @@
     const params = new URLSearchParams(location.search);
     const tokenFromOAuth = params.get('token');
     const oauthError = params.get('error');
+    const oauthLogin = params.get('login');
     if (tokenFromOAuth) {
       saveToken(tokenFromOAuth);
       // Limpiamos la URL antes de redirigir para no dejar el JWT visible.
       history.replaceState({}, '', location.pathname);
+      // Persistimos un flag para que el dashboard muestre el toast tras el
+      // redirect (showToast aqui se perderia con location.replace).
+      if (oauthLogin === 'google') {
+        sessionStorage.setItem('toast.oauth.success', 'Sesion iniciada con Google');
+      }
       location.replace('dashboard.html');
       throw new Error('redirigiendo tras OAuth');
     }
     if (oauthError) {
-      showAlert('error', oauthError);
+      showToast(oauthError, 'error', 5000);
       history.replaceState({}, '', location.pathname);
     }
 

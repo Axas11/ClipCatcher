@@ -66,6 +66,7 @@
   <script type="module">
     import { uploadVideo, getMe, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
+    import { showToast } from './js/toast.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
 
@@ -127,7 +128,9 @@
           progressLabel.textContent = pct + '%';
           progressBytes.textContent = `${fmtBytes(Math.round(frac * file.size))} / ${fmtBytes(file.size)}`;
         });
-        showAlert('success', `Vídeo recibido (id=${video.id}). Redirigiendo…`);
+        // Persistimos el toast en sessionStorage para que aparezca en
+        // video.html tras el redirect (showToast aqui se perderia).
+        sessionStorage.setItem('toast.upload.success', 'Vídeo subido, procesando…');
         location.replace(`video.html?id=${video.id}`);
       } catch (err) {
         let msg = err.detail || 'No se pudo subir el vídeo.';
@@ -135,7 +138,7 @@
           if (err.status === 413) msg = 'El archivo supera el tamaño máximo permitido.';
           else if (err.status === 400) msg = err.detail || 'El archivo no es válido.';
         }
-        showAlert('error', msg);
+        showToast(msg, 'error', 5000);
         btn.disabled = false; document.getElementById('btn-upload-label').textContent = 'Subir y procesar';
         fileInput.disabled = false;
       }

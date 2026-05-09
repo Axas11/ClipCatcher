@@ -77,6 +77,7 @@
   <script type="module">
     import { getMe, getMySettings, updateMySettings, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
+    import { showToast } from './js/toast.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
     if (window.lucide) window.lucide.createIcons();
@@ -90,9 +91,12 @@
 
     document.getElementById('btn-logout').addEventListener('click', logout);
 
-    function showAlert(kind, msg, autoHideMs = null) {
+    function showAlert(kind, msg) {
+      // Mantenemos esta funcion solo para el error de carga inicial de
+      // settings (caso raro pero importante: si no podemos leer la
+      // configuracion el form quedaria vacio y un toast efimero no
+      // ayudaria al usuario a entender por que). El resto pasa a toast.
       alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
-      if (autoHideMs) setTimeout(clearAlert, autoHideMs);
     }
     function clearAlert() { alertSlot.innerHTML = ''; }
 
@@ -141,14 +145,14 @@
       try {
         const updated = await updateMySettings(readForm());
         fillForm(updated);
-        showAlert('success', 'Configuración guardada.', 3000);
+        showToast('Configuración guardada', 'success');
       } catch (err) {
         let msg = err.detail || 'No se pudo guardar la configuración.';
         if (err instanceof ApiError && err.status === 422) {
           const formatted = formatPydanticErrors(err.body);
           if (formatted) msg = `Valores fuera de rango: ${formatted}`;
         }
-        showAlert('error', msg);
+        showToast(msg, 'error', 5000);
       } finally {
         btn.disabled = false; btnLabel.textContent = 'Guardar';
       }

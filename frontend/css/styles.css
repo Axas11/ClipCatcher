@@ -525,6 +525,80 @@ input[type="file"] {
 .alert-success { border-color: rgba(52, 211, 153, 0.4); color: var(--success); }
 .alert-info { border-color: rgba(0, 224, 255, 0.4); color: var(--cyan); }
 
+/* ============ Toasts (F9.1) ============
+ * Notificaciones efimeras top-right. El contenedor se crea via JS la
+ * primera vez que se llama a showToast(). Apilan verticalmente. */
+
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;  /* solo los toasts capturan clicks */
+  max-width: calc(100vw - 48px);
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-mute);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text);
+  min-width: 240px;
+  max-width: 360px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  transform: translateX(20px);
+  opacity: 0;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  cursor: pointer;
+}
+
+.toast.toast-show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast.toast-hide {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.toast-icon svg { width: 18px; height: 18px; }
+
+.toast-msg {
+  flex: 1;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.toast-success { border-left-color: var(--success); color: var(--success); }
+.toast-success .toast-msg { color: var(--text); }
+
+.toast-error { border-left-color: var(--danger); color: var(--danger); }
+.toast-error .toast-msg { color: var(--text); }
+
+.toast-info { border-left-color: var(--cyan); color: var(--cyan); }
+.toast-info .toast-msg { color: var(--text); }
+
+.toast-warning { border-left-color: var(--warning); color: var(--warning); }
+.toast-warning .toast-msg { color: var(--text); }
+
 /* ============ Status badges (videos) ============ */
 
 .status {
