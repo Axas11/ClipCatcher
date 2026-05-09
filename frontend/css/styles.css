@@ -13,7 +13,9 @@
   --border-soft: #2a3152;
   --text: #e8ecf7;
   --text-mute: #8a93b3;
+  --text-tertiary: #6772a0;  /* hints debajo de campos, mas tenue que --text-mute */
   --cyan: #00e0ff;
+  --cyan-soft: rgba(0, 224, 255, 0.65);  /* labels en mayusculas espaciadas */
   --purple: #a855f7;
   --magenta: #d946ef;
   --indigo: #6d6efc;
@@ -21,9 +23,31 @@
   --success: #34d399;
   --warning: #fbbf24;
   --gradient: linear-gradient(120deg, #00e0ff 0%, #6d6efc 50%, #d946ef 100%);
+  --slider-track: linear-gradient(90deg, #00e0ff 0%, #d946ef 100%);
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 8px 32px rgba(0, 0, 0, 0.4);
   --radius: 14px;
   --radius-sm: 10px;
+
+  /* Sistema de spacing (F10.1). Escala 4-8-12-16-24-32-48-64-96-128
+   * para usar de forma consistente padding, gap, margin en lugar de
+   * numeros magicos. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  /* Sistema de inputs (F10.1). Variables centralizadas para que el
+   * componente .field y el slider compartan apariencia. */
+  --input-bg: #131829;
+  --input-bg-focus: #161c33;
+  --input-border: #1f2540;
+  --input-border-focus: #00e0ff;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -362,43 +386,202 @@ h3 { font-size: 16px; margin-bottom: 8px; }
   color: var(--text-mute);
 }
 
-/* ============ Formularios ============ */
+/* ============ Formularios (F10.1 sistema de campos) ============
+ *
+ * Componente .field: container con label uppercase + input alto +
+ * hint opcional. El input mide 48px de alto, padding 14px 16px,
+ * border 1px var(--input-border), radius 8px. Focus: borde cian +
+ * box-shadow glow + fondo ligeramente mas claro.
+ *
+ * Compat: los <label> y <input> sueltos (sin .field-label / .field-hint)
+ * heredan el mismo aspecto para no romper paginas previas a F10. */
 
-label {
+label,
+.field-label {
   display: block;
-  font-size: 13px;
-  color: var(--text-mute);
-  margin-bottom: 6px;
-  font-weight: 400;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan-soft);
+  margin-bottom: var(--space-2);
 }
 
 input[type="email"],
 input[type="password"],
 input[type="text"],
+input[type="number"],
 input[type="file"] {
   width: 100%;
-  background: var(--bg-card-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  height: 48px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
   color: var(--text);
   font-family: inherit;
   font-size: 15px;
-  padding: 12px 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: 14px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   outline: none;
 }
 
 input:focus {
-  border-color: var(--cyan);
-  box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.15);
+  border-color: var(--input-border-focus);
+  background: var(--input-bg-focus);
+  box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.18);
 }
 
 input[type="file"] {
-  padding: 10px 12px;
+  padding: 10px 14px;
   cursor: pointer;
+  /* Los inputs file no tienen un alto exacto; height: auto evita el
+   * gap visual entre el boton nativo y el borde del .field. */
+  height: auto;
+  min-height: 48px;
+  line-height: 26px;
 }
 
-.field { margin-bottom: 18px; }
+.field { margin-bottom: var(--space-4); }
+
+/* Pista de ayuda debajo del input. */
+.field-hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  margin-top: var(--space-2);
+  line-height: 1.45;
+}
+
+/* ============ Slider (F10.1) ============
+ *
+ * Componente .slider-input: container con label + slider + valor +
+ * marcas min/max. El thumb se construye con `appearance: none` y
+ * el tooltip de valor lo mueve `slider.js` por JS. */
+
+.slider-input {
+  margin-bottom: var(--space-5);
+}
+
+.slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.slider-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--cyan);
+  font-weight: 500;
+  min-width: 56px;
+  text-align: right;
+}
+
+.slider-track-wrap {
+  position: relative;
+  padding: 14px 0 6px;  /* hueco arriba para el tooltip flotante */
+}
+
+input[type="range"].slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--slider-track);
+  border-radius: 3px;
+  outline: none;
+  cursor: grab;
+  margin: 0;
+  padding: 0;
+}
+input[type="range"].slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: transparent;
+}
+input[type="range"].slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--slider-track);
+}
+input[type="range"].slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--cyan);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 12px rgba(0, 224, 255, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  margin-top: -7px;  /* centra el thumb sobre el track de 6px */
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+input[type="range"].slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cyan);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 12px rgba(0, 224, 255, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  transition: transform 0.15s ease;
+}
+input[type="range"].slider:hover::-webkit-slider-thumb { transform: scale(1.15); }
+input[type="range"].slider:hover::-moz-range-thumb { transform: scale(1.15); }
+input[type="range"].slider:active { cursor: grabbing; }
+input[type="range"].slider:active::-webkit-slider-thumb { cursor: grabbing; }
+input[type="range"].slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(0, 224, 255, 0.20),
+              0 0 12px rgba(0, 224, 255, 0.55),
+              0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Tooltip flotante con el valor actual encima del thumb. JS le ajusta
+ * `left` segun la posicion del thumb (ver slider.js). */
+.slider-tooltip {
+  position: absolute;
+  top: -8px;
+  transform: translate(-50%, -100%);
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-soft);
+  color: var(--cyan);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.slider-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 6px; height: 6px;
+  background: var(--bg-card-2);
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+}
+.slider-track-wrap:hover .slider-tooltip,
+input[type="range"].slider:focus + .slider-tooltip,
+.slider-input.is-active .slider-tooltip { opacity: 1; }
+
+.slider-marks {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: var(--space-1);
+}
 
 /* ============ Botones ============ */
 
@@ -723,18 +906,52 @@ input[type="file"] {
 
 .modal-actions .btn { padding: 10px 18px; font-size: 14px; }
 
-/* Boton destructivo, usado en confirmaciones de borrado. */
+/* Boton secundario: outline cian sobre fondo transparente. Usado para
+ * acciones secundarias junto a un primario (ej. "Restablecer", "Cancelar"
+ * cuando no es destructivo). */
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+}
+.btn-secondary:hover {
+  background: rgba(0, 224, 255, 0.10);
+  border-color: var(--cyan);
+}
+
+/* Boton destructivo, usado en confirmaciones de borrado. Gradient
+ * rojo->naranja para que destaque sin necesidad de un layout distinto. */
 .btn-danger {
-  background: var(--danger);
-  border: 1px solid var(--danger);
+  background: linear-gradient(120deg, #ef4444 0%, #f97316 100%);
+  border: 1px solid transparent;
   color: #1a0808;
   font-weight: 600;
 }
 .btn-danger:hover {
-  border-color: var(--danger);
-  box-shadow: 0 4px 18px rgba(248, 113, 113, 0.35);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.40);
 }
 .btn-danger svg { width: 16px; height: 16px; }
+
+/* Estado loading: aplicable a cualquier .btn. Bloquea clicks, baja
+ * la opacidad y deja un spinner inline antes del label. El JS solo
+ * tiene que poner data-loading="true" / "false" en el boton. */
+.btn[data-loading="true"] {
+  pointer-events: none;
+  opacity: 0.7;
+  position: relative;
+}
+.btn[data-loading="true"]::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.7s linear infinite;
+  margin-right: var(--space-2);
+}
 
 /* ============ Boton borrar en cards de video (F9.3) ============ */
 
