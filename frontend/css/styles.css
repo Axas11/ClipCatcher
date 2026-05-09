@@ -602,9 +602,8 @@ input[type="range"].slider:focus + .slider-tooltip,
   cursor: pointer;
   padding: var(--space-3) var(--space-4);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-2);
   font-family: 'Outfit', sans-serif;
   font-weight: 500;
   font-size: 14px;
@@ -622,11 +621,26 @@ input[type="range"].slider:focus + .slider-tooltip,
 }
 .disclosure[open] .disclosure-summary .chev { transform: rotate(90deg); }
 
+/* Fila superior: chevron + heading + "(opcional)" en una sola linea
+ * con nowrap. Si no cabe, el "(opcional)" puede colapsar pero el
+ * heading nunca se rompe. */
 .disclosure-summary .summary-left {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+.disclosure-summary .summary-left > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.disclosure-summary .summary-left .summary-aux {
+  color: var(--text-mute);
+  font-size: 13px;
+  font-weight: 400;
+  flex-shrink: 1;
   min-width: 0;
 }
 
@@ -641,6 +655,21 @@ input[type="range"].slider:focus + .slider-tooltip,
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid;
+  align-self: flex-start;  /* pill alineado a la izquierda en mobile */
+}
+
+/* En desktop apilamos en horizontal: heading a la izquierda, pill
+ * a la derecha en la misma fila. */
+@media (min-width: 700px) {
+  .disclosure-summary {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .disclosure-summary .summary-status {
+    align-self: center;
+    flex-shrink: 0;
+  }
 }
 .summary-status[data-state="default"] {
   color: var(--success);
