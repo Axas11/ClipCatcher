@@ -22,6 +22,10 @@ class UserOut(BaseModel):
     email: EmailStr
     name: str
     created_at: datetime
+    # Provider de autenticacion: "email" o "google". El frontend lo usa
+    # para decidir si mostrar el form de cambio de password (solo email)
+    # o el badge "vinculada a Google" en /account.html.
+    auth_provider: str
 
 
 class Token(BaseModel):
