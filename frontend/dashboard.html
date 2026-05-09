@@ -72,7 +72,7 @@
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
-    import { listVideos, getMe, getMyStats, deleteVideo, ApiError } from './js/api.js';
+    import { listVideos, getVideo, getMe, getMyStats, deleteVideo, fetchClipBlobUrl, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
     import { confirmModal } from './js/modal.js';
@@ -202,6 +202,21 @@
       slot.innerHTML = `<div class="card-grid">${cards}</div>`;
       if (window.lucide) window.lucide.createIcons();
 
+      // F9.6: hover preview en cards con status === 'done'.
+      slot.querySelectorAll('.video-card').forEach(card => {
+        const link = card.querySelector('.video-card-link');
+        if (!link) return;
+        // El video id sale del href de navegacion, asi no anadimos data-attrs.
+        const m = (link.getAttribute('href') || '').match(/id=(\d+)/);
+        if (!m) return;
+        const vid = parseInt(m[1], 10);
+        // Solo activamos preview en cards 'done' (las demas no tienen
+        // clip todavia o han fallado).
+        const statusEl = card.querySelector('.status');
+        if (!statusEl || !statusEl.classList.contains('status-done')) return;
+        attachHoverPreview(card, vid);
+      });
+
       // Enlazar handler de borrado en cada boton.
       slot.querySelectorAll('.btn-card-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
@@ -252,6 +267,85 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
       }[c]));
     }
+
+    /* ===== F9.6: hover preview manager =====
+     * Estado global: solo un preview activo a la vez. Si el usuario
+     * pasa de una card a otra rapidamente cancelamos el fetch en curso
+     * mediante `activeRequestId`. Liberamos el blob URL en cada cambio
+     * para evitar fugas de memoria. */
+    const HOVER_DELAY_MS = 500;
+    let hoverEl = null;
+    let hoverUrl = null;
+    let activeRequestId = 0;  // contador monotonico
+
+    function destroyHoverPreview() {
+      if (hoverEl) { hoverEl.remove(); hoverEl = null; }
+      if (hoverUrl) { URL.revokeObjectURL(hoverUrl); hoverUrl = null; }
+    }
+
+    function placeHoverPreview(anchor, el) {
+      // Posicionamos a la derecha de la card. Si no cabe, intentamos
+      // por la izquierda; si tampoco, lo apilamos abajo.
+      const rect = anchor.getBoundingClientRect();
+      const margin = 8;
+      const W = 220;
+      const H = Math.round(W * 9 / 16);
+      let left = rect.right + margin;
+      let top = rect.top;
+      if (left + W > window.innerWidth - 8) {
+        left = rect.left - W - margin;
+        if (left < 8) {
+          left = Math.max(8, Math.min(rect.left, window.innerWidth - W - 8));
+          top = rect.bottom + margin;
+        }
+      }
+      // Clamp vertical para que no se salga abajo.
+      if (top + H > window.innerHeight - 8) top = window.innerHeight - H - 8;
+      el.style.left = left + 'px';
+      el.style.top = top + 'px';
+    }
+
+    function attachHoverPreview(card, videoId) {
+      let timer = null;
+
+      card.addEventListener('mouseenter', () => {
+        timer = setTimeout(async () => {
+          const myReq = ++activeRequestId;
+          try {
+            const video = await getVideo(videoId);
+            if (myReq !== activeRequestId) return;  // hover ya cambio
+            if (!video.clips || !video.clips.length) return;
+            const url = await fetchClipBlobUrl(video.clips[0].id, 'stream');
+            if (myReq !== activeRequestId) {
+              URL.revokeObjectURL(url);
+              return;
+            }
+            // Recambio: limpia el preview anterior y monta el nuevo.
+            destroyHoverPreview();
+            hoverUrl = url;
+            hoverEl = document.createElement('div');
+            hoverEl.className = 'hover-preview';
+            hoverEl.innerHTML = `<video autoplay muted loop playsinline src="${url}"></video>`;
+            document.body.appendChild(hoverEl);
+            placeHoverPreview(card, hoverEl);
+            // Reflow + show para activar la transicion.
+            // eslint-disable-next-line no-unused-expressions
+            hoverEl.offsetHeight;
+            hoverEl.classList.add('hover-preview-show');
+          } catch (_) { /* silencioso: si el preview falla, no molestamos */ }
+        }, HOVER_DELAY_MS);
+      });
+
+      card.addEventListener('mouseleave', () => {
+        if (timer) { clearTimeout(timer); timer = null; }
+        // Cualquier fetch en curso queda invalidado (incrementamos id).
+        activeRequestId++;
+        destroyHoverPreview();
+      });
+    }
+
+    // Si el usuario navega a otra pagina (o cierra) limpiamos el blob.
+    window.addEventListener('beforeunload', destroyHoverPreview);
 
     (async () => {
       try {

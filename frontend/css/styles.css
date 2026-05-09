@@ -853,6 +853,34 @@ input[type="file"] {
   transform: translateY(0);
 }
 
+/* ============ Hover preview en cards de video (F9.6) ============ */
+.hover-preview {
+  position: fixed;
+  width: 220px;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.7),
+              0 0 0 1px rgba(0, 224, 255, 0.20);
+  overflow: hidden;
+  z-index: 8000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.hover-preview.hover-preview-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+.hover-preview video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #000;
+}
+
 /* ============ Status badges (videos) ============ */
 
 .status {
