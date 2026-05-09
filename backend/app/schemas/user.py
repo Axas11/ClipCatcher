@@ -35,6 +35,25 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class UserProfileUpdate(BaseModel):
+    """Actualizacion parcial del perfil del usuario (F11.1)."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    email: EmailStr | None = None
+
+
+class PasswordChangeRequest(BaseModel):
+    """Cuerpo del cambio de contraseña (F11.1).
+
+    `current_password` no se valida con min_length para permitir el
+    rechazo correcto (401) si era una contraseña corta legacy. La
+    nueva si tiene min_length=8 alineada con el registro.
+    """
+
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserSettings(BaseModel):
     """Configuracion del detector personalizable por el usuario."""
 
