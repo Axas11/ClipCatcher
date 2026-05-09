@@ -29,3 +29,24 @@ class Token(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+
+
+class UserSettings(BaseModel):
+    """Configuracion del detector personalizable por el usuario."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    chain_window_seconds: float = Field(ge=1.0, le=60.0)
+    clip_margin_seconds: float = Field(ge=0.0, le=10.0)
+    clip_duration_seconds: float = Field(ge=1.0, le=60.0)
+
+
+class UserSettingsUpdate(BaseModel):
+    """Actualizacion parcial (PATCH-like) de la configuracion del detector.
+
+    Cada campo es opcional: solo se actualizan los enviados por el cliente.
+    """
+
+    chain_window_seconds: float | None = Field(default=None, ge=1.0, le=60.0)
+    clip_margin_seconds: float | None = Field(default=None, ge=0.0, le=10.0)
+    clip_duration_seconds: float | None = Field(default=None, ge=1.0, le=60.0)
