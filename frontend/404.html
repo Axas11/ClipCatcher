@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipCatcher · 404 No encontrado</title>
+  <meta name="description" content="Esta página no existe en ClipCatcher.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="ClipCatcher · 404 No encontrado">
+  <meta property="og:description" content="Esta página no existe en ClipCatcher.">
+  <meta property="og:image" content="favicon.svg">
+  <meta name="twitter:card" content="summary">
+</head>
+<body>
+  <main class="not-found-shell">
+    <div>
+      <p class="not-found-code">404</p>
+      <h1 class="not-found-msg">Esta página no existe</h1>
+      <p class="not-found-hint">Es posible que el enlace esté roto o que el contenido haya sido eliminado. Vuelve al inicio para seguir desde ahí.</p>
+      <a class="btn btn-primary" href="/">
+        <i data-lucide="arrow-left"></i>
+        <span>Volver al inicio</span>
+      </a>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module">
+    import { mountFooter } from './js/animations.js';
+    if (window.lucide) window.lucide.createIcons();
+    mountFooter();
+  </script>
+</body>
+</html>

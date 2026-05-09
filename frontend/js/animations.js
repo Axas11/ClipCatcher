@@ -109,3 +109,34 @@ export function initPageTransitions() {
     if (e.persisted) document.body.removeAttribute('data-page-fade');
   });
 }
+
+/* F12.4a: footer compacto inyectado por JS en paginas internas
+ * (dashboard, upload, video, account). Asi el copy vive en un solo
+ * sitio y un cambio se propaga a todas las paginas. La landing tiene
+ * su propio footer completo (mas grande con links). */
+const FOOTER_COMPACT_HTML = `
+<footer class="site-footer site-footer-compact">
+  <div class="site-footer-inner">
+    <div class="footer-brand">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
+        <path d="m6.2 5.3 3.1 3.9"/>
+        <path d="m12.4 3.4 3.1 4"/>
+        <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+      </svg>
+      <span class="brand-text">ClipCatcher</span>
+    </div>
+    <nav class="footer-links" aria-label="Enlaces">
+      <a href="https://github.com/Axas11/ClipCatcher" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/Axas11/ClipCatcher/blob/main/docs/arquitectura.md" target="_blank" rel="noopener">Arquitectura</a>
+    </nav>
+    <p class="footer-meta">TFG 2º DAW · Curso 2025-2026</p>
+  </div>
+</footer>`;
+
+export function mountFooter() {
+  if (document.querySelector('footer.site-footer')) return;  // ya hay uno
+  const wrap = document.createElement('div');
+  wrap.innerHTML = FOOTER_COMPACT_HTML.trim();
+  document.body.appendChild(wrap.firstChild);
+}

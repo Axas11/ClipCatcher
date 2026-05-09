@@ -5,9 +5,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import auth as auth_router
@@ -84,6 +86,40 @@ app.include_router(stats_router.router, prefix="/api")
 def health() -> dict[str, str]:
     """Healthcheck simple para comprobar que la API responde."""
     return {"status": "ok"}
+
+
+# Handler 404 (F12.4b): si una ruta /api/* devuelve 404 mantenemos el
+# JSON estandar; si una ruta de frontend (HTML/CSS/JS, no /api) devuelve
+# 404, servimos la pagina 404.html con el branding completo.
+_NOT_FOUND_PAGE = _FRONTEND_DIR / "404.html"
+
+
+@app.exception_handler(StarletteHTTPException)
+async def custom_404_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404 and not request.url.path.startswith("/api/"):
+        if _NOT_FOUND_PAGE.is_file():
+            return FileResponse(_NOT_FOUND_PAGE, status_code=404)
+    # Fallback: respuesta JSON estandar (igual que la default de FastAPI).
+    return JSONResponse(
+        {"detail": exc.detail},
+        status_code=exc.status_code,
+        headers=getattr(exc, "headers", None),
+    )
+
+
+# Catch-all en /api/* (F12.4b). Se registra DESPUES de todos los
+# routers concretos y del @app.get("/api/health") para que solo capture
+# rutas que ningun handler previo ha aceptado. Si lo dejaramos antes
+# robaria a las rutas concretas. Devuelve 404 JSON estandar; sin esto,
+# StaticFiles(html=True) interceptaria la 404 y serviria 404.html como
+# respuesta a /api/noexiste, rompiendo clientes API.
+@app.api_route(
+    "/api/{full_path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    include_in_schema=False,
+)
+async def api_catch_all_404(full_path: str):
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
 # Frontend estatico montado en `/`. Debe ir DESPUES de los routers e

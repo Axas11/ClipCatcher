@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClipCatcher · Detalle de vídeo</title>
+  <meta name="description" content="Detalle del vídeo y clips generados por ClipCatcher.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.png">
   <link rel="stylesheet" href="css/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="ClipCatcher · Detalle de vídeo">
+  <meta property="og:description" content="Detalle del vídeo y clips generados por ClipCatcher.">
+  <meta property="og:image" content="favicon.svg">
+  <meta name="twitter:card" content="summary">
 </head>
 <body>
   <main class="app-shell">
@@ -51,10 +59,11 @@
     import { getVideo, getMe, fetchClipBlobUrl, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
-    import { initPageTransitions } from './js/animations.js';
+    import { initPageTransitions, mountFooter } from './js/animations.js';
 
     // F12.3d: page transition fade entre paginas internas.
     initPageTransitions();
+    mountFooter();
 
     // Drena el toast dejado por upload.html tras una subida exitosa.
     const _toastUpload = sessionStorage.getItem('toast.upload.success');

@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClipCatcher · Mis vídeos</title>
+  <meta name="description" content="Tus vídeos procesados y los clips generados por ClipCatcher.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.png">
   <link rel="stylesheet" href="css/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="ClipCatcher · Mis vídeos">
+  <meta property="og:description" content="Tus vídeos procesados y los clips generados por ClipCatcher.">
+  <meta property="og:image" content="favicon.svg">
+  <meta name="twitter:card" content="summary">
 </head>
 <body>
   <main class="app-shell">
@@ -80,7 +88,9 @@
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
     import { confirmModal } from './js/modal.js';
-    import { initRevealOnScroll, initPageTransitions } from './js/animations.js';
+    import { initRevealOnScroll, initPageTransitions, mountFooter } from './js/animations.js';
+
+    mountFooter();
 
     // Drena toasts dejados por otras paginas (login OAuth, upload, etc).
     // Se hace antes del primer render para que aparezcan inmediatamente.

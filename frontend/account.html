@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClipCatcher · Mi cuenta</title>
+  <meta name="description" content="Gestiona tu perfil, contraseña y configuración del detector.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.png">
   <link rel="stylesheet" href="css/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="ClipCatcher · Mi cuenta">
+  <meta property="og:description" content="Gestiona tu perfil, contraseña y configuración del detector.">
+  <meta property="og:image" content="favicon.svg">
+  <meta name="twitter:card" content="summary">
 </head>
 <body>
   <main class="app-shell">
@@ -162,9 +170,10 @@
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
     import { mountSlider } from './js/slider.js';
-    import { initPageTransitions } from './js/animations.js';
+    import { initPageTransitions, mountFooter } from './js/animations.js';
 
     initPageTransitions();
+    mountFooter();
 
     if (!requireAuth()) throw new Error('redirigiendo');
     if (window.lucide) window.lucide.createIcons();
