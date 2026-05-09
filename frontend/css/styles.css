@@ -479,16 +479,26 @@ input[type="file"] {
 
 .empty {
   text-align: center;
-  padding: 48px 24px;
+  padding: 56px 24px;
   color: var(--text-mute);
   border: 1px dashed var(--border-soft);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.01);
 }
 
-.empty h3 { color: var(--text); }
+.empty h3 { color: var(--text); margin-bottom: 6px; font-size: 22px; }
+.empty p { max-width: 440px; margin: 0 auto; }
+.empty .btn { margin-top: 22px; }
 
-.empty .btn { margin-top: 16px; }
+.empty-icon {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  color: var(--cyan);
+  opacity: 0.4;
+  stroke-width: 1.5;
+}
 
 /* ============ Utils ============ */
 

@@ -76,10 +76,14 @@
       if (!videos.length) {
         slot.innerHTML = `
           <div class="empty">
-            <h3>Aún no tienes vídeos</h3>
-            <p>Sube tu primera grabación para empezar a generar clips.</p>
-            <a class="btn btn-primary" href="upload.html">Subir vídeo</a>
+            <i class="empty-icon" data-lucide="clapperboard"></i>
+            <h3>Aún no hay vídeos</h3>
+            <p>Sube tu primera grabación y deja que ClipCatcher encuentre los mejores momentos.</p>
+            <a class="btn btn-primary" href="upload.html">
+              <i data-lucide="upload-cloud"></i> Subir mi primer vídeo
+            </a>
           </div>`;
+        if (window.lucide) window.lucide.createIcons();
         return;
       }
       const cards = videos.map(v => {
