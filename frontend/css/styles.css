@@ -667,6 +667,72 @@ input[type="range"].slider:focus + .slider-tooltip,
 }
 .disclosure-actions .btn { padding: 8px 14px; font-size: 13px; }
 
+/* ============ Card hero header (F10.3) ============
+ * Cabecera de cards "destacadas" con icono grande + titulo + subtitulo.
+ * Se usa en /account.html para alinear visualmente con el resto. */
+
+.card-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.card-hero-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0, 224, 255, 0.18), rgba(217, 70, 239, 0.18));
+  border: 1px solid rgba(0, 224, 255, 0.30);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cyan);
+  filter: drop-shadow(0 4px 14px rgba(0, 224, 255, 0.25));
+}
+.card-hero-icon svg { width: 28px; height: 28px; }
+
+.card-hero-text { flex: 1; min-width: 0; }
+.card-hero-text h1 {
+  margin: 0 0 var(--space-2);
+  font-size: 28px;
+  line-height: 1.15;
+}
+.card-hero-text .lead { margin: 0; max-width: 560px; }
+
+/* Indicador "Cambios sin guardar" en account.html. Aparece arriba del
+ * formulario cuando el usuario tocó algo y no ha pulsado guardar. */
+.unsaved-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.40);
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--warning);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+}
+.unsaved-banner svg { width: 14px; height: 14px; }
+
+/* Variante "card destacado": gradient explicito mas vivido en el hairline
+ * superior y un fondo ligeramente glass-like. Reusa .card y se anade
+ * .card-feature (ej. account.html). */
+.card-feature {
+  background:
+    radial-gradient(800px 300px at 50% -10%, rgba(0, 224, 255, 0.10), transparent 60%),
+    var(--bg-card);
+}
+.card-feature::before {
+  height: 2px;
+  opacity: 0.85;
+}
+
 /* ============ Botones ============ */
 
 .btn {

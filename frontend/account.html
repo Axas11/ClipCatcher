@@ -30,40 +30,34 @@
       </div>
     </header>
 
-    <section class="card card-narrow" style="margin: 0 auto;">
-      <h1>Mi cuenta</h1>
-      <p class="lead">Personaliza cómo ClipCatcher detecta y recorta tus clips.</p>
+    <section class="card card-feature card-narrow" style="margin: 0 auto;">
+      <div class="card-hero">
+        <span class="card-hero-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+        <div class="card-hero-text">
+          <h1>Mi cuenta</h1>
+          <p class="lead">Estos valores se aplican <strong>por defecto</strong> a cada nuevo vídeo. Puedes sobrescribirlos en cada subida individual desde "Configuración avanzada".</p>
+        </div>
+      </div>
 
       <div id="alert-slot"></div>
 
-      <h2 style="margin-top: 18px;">Configuración del detector</h2>
+      <div class="unsaved-banner hidden" id="unsaved-banner">
+        <i data-lucide="alert-circle"></i>
+        <span>Cambios sin guardar</span>
+      </div>
+
+      <h2 style="margin-top: var(--space-2); margin-bottom: var(--space-4);">Configuración del detector</h2>
 
       <form id="form-settings">
-        <div class="field">
-          <label for="chain_window_seconds">Ventana de encadenamiento (s)</label>
-          <input id="chain_window_seconds" name="chain_window_seconds" type="number" step="0.5" min="1" max="60" required>
-          <p class="text-mute" style="font-size: 13px; margin-top: 4px;">
-            Tiempo máximo entre kills para agruparlas en un mismo clip. Default 6 s.
-          </p>
-        </div>
+        <div id="sliders-slot"></div>
 
-        <div class="field">
-          <label for="clip_margin_seconds">Margen del clip (s)</label>
-          <input id="clip_margin_seconds" name="clip_margin_seconds" type="number" step="0.5" min="0" max="10" required>
-          <p class="text-mute" style="font-size: 13px; margin-top: 4px;">
-            Segundos extra al inicio y final de cada clip. Default 2 s.
-          </p>
-        </div>
-
-        <div class="field">
-          <label for="clip_duration_seconds">Duración base del clip (s)</label>
-          <input id="clip_duration_seconds" name="clip_duration_seconds" type="number" step="0.5" min="1" max="60" required>
-          <p class="text-mute" style="font-size: 13px; margin-top: 4px;">
-            Duración mínima del clip. Default 6 s.
-          </p>
-        </div>
-
-        <div class="row row-end">
+        <div class="row row-end" style="margin-top: var(--space-5); gap: var(--space-3);">
+          <button type="button" class="btn btn-secondary" id="btn-reset" disabled>
+            <i data-lucide="rotate-ccw"></i>
+            <span>Descartar cambios</span>
+          </button>
           <button type="submit" class="btn btn-primary" id="btn-save">
             <i data-lucide="save"></i>
             <span id="btn-save-label">Guardar</span>
@@ -78,6 +72,7 @@
     import { getMe, getMySettings, updateMySettings, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
+    import { mountSlider } from './js/slider.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
     if (window.lucide) window.lucide.createIcons();
@@ -85,34 +80,82 @@
     const userPill = document.getElementById('user-pill');
     const form = document.getElementById('form-settings');
     const alertSlot = document.getElementById('alert-slot');
-    const btn = document.getElementById('btn-save');
-    const btnLabel = document.getElementById('btn-save-label');
-    const fields = ['chain_window_seconds', 'clip_margin_seconds', 'clip_duration_seconds'];
+    const btnSave = document.getElementById('btn-save');
+    const btnSaveLabel = document.getElementById('btn-save-label');
+    const btnReset = document.getElementById('btn-reset');
+    const slidersSlot = document.getElementById('sliders-slot');
+    const unsavedBanner = document.getElementById('unsaved-banner');
 
     document.getElementById('btn-logout').addEventListener('click', logout);
 
     function showAlert(kind, msg) {
-      // Mantenemos esta funcion solo para el error de carga inicial de
-      // settings (caso raro pero importante: si no podemos leer la
-      // configuracion el form quedaria vacio y un toast efimero no
-      // ayudaria al usuario a entender por que). El resto pasa a toast.
       alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
     }
     function clearAlert() { alertSlot.innerHTML = ''; }
 
-    function fillForm(settings) {
-      for (const f of fields) {
-        document.getElementById(f).value = settings[f];
-      }
+    const FIELDS = ['chain_window_seconds', 'clip_margin_seconds', 'clip_duration_seconds'];
+    const RANGES = {
+      chain_window_seconds:  { min: 1, max: 60, step: 0.5 },
+      clip_margin_seconds:   { min: 0, max: 10, step: 0.5 },
+      clip_duration_seconds: { min: 1, max: 60, step: 0.5 },
+    };
+    const LABELS = {
+      chain_window_seconds:  'Ventana de encadenamiento',
+      clip_margin_seconds:   'Margen del clip',
+      clip_duration_seconds: 'Duración base del clip',
+    };
+    const HINTS = {
+      chain_window_seconds:  'Tiempo máximo entre kills para agruparlas en un mismo clip.',
+      clip_margin_seconds:   'Segundos extra al inicio y al final de cada clip.',
+      clip_duration_seconds: 'Duración mínima del clip generado.',
+    };
+
+    let savedValues = { chain_window_seconds: 6, clip_margin_seconds: 2, clip_duration_seconds: 6 };
+    const currentValues = { ...savedValues };
+    const sliders = {};
+
+    function fmtSeconds(v) { return `${Number(v).toFixed(1)} s`; }
+
+    function isDirty() {
+      return FIELDS.some(f => Math.abs(currentValues[f] - savedValues[f]) > 1e-6);
     }
 
-    function readForm() {
-      const out = {};
-      for (const f of fields) {
-        out[f] = parseFloat(document.getElementById(f).value);
-      }
-      return out;
+    function refreshDirty() {
+      const dirty = isDirty();
+      unsavedBanner.classList.toggle('hidden', !dirty);
+      btnReset.disabled = !dirty;
     }
+
+    function buildSliders() {
+      slidersSlot.innerHTML = '';
+      for (const f of FIELDS) {
+        const r = RANGES[f];
+        const s = mountSlider({
+          label: LABELS[f],
+          hint: HINTS[f],
+          min: r.min, max: r.max, step: r.step,
+          value: currentValues[f],
+          format: fmtSeconds,
+          onChange: (v) => { currentValues[f] = v; refreshDirty(); },
+        });
+        slidersSlot.appendChild(s.element);
+        sliders[f] = s;
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function applyValues(target) {
+      for (const f of FIELDS) {
+        currentValues[f] = target[f];
+        if (sliders[f]) sliders[f].setValue(target[f]);
+      }
+      refreshDirty();
+    }
+
+    btnReset.addEventListener('click', () => {
+      applyValues(savedValues);
+      showToast('Cambios descartados', 'info', 2500);
+    });
 
     function formatPydanticErrors(body) {
       if (!body || !Array.isArray(body.detail)) return null;
@@ -132,19 +175,32 @@
       }
       try {
         const settings = await getMySettings();
-        fillForm(settings);
+        for (const f of FIELDS) {
+          savedValues[f] = settings[f];
+          currentValues[f] = settings[f];
+        }
       } catch (err) {
         showAlert('error', `No se pudo cargar la configuración: ${err.detail || err.message}`);
       }
+      buildSliders();
+      refreshDirty();
     })();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAlert();
-      btn.disabled = true; btnLabel.textContent = 'Guardando…';
+      btnSave.dataset.loading = 'true';
+      btnSaveLabel.textContent = 'Guardando…';
       try {
-        const updated = await updateMySettings(readForm());
-        fillForm(updated);
+        const payload = {};
+        for (const f of FIELDS) payload[f] = currentValues[f];
+        const updated = await updateMySettings(payload);
+        savedValues = {
+          chain_window_seconds: updated.chain_window_seconds,
+          clip_margin_seconds: updated.clip_margin_seconds,
+          clip_duration_seconds: updated.clip_duration_seconds,
+        };
+        applyValues(savedValues);
         showToast('Configuración guardada', 'success');
       } catch (err) {
         let msg = err.detail || 'No se pudo guardar la configuración.';
@@ -154,7 +210,8 @@
         }
         showToast(msg, 'error', 5000);
       } finally {
-        btn.disabled = false; btnLabel.textContent = 'Guardar';
+        btnSave.dataset.loading = 'false';
+        btnSaveLabel.textContent = 'Guardar';
       }
     });
   </script>
