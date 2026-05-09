@@ -688,6 +688,109 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .disclosure-actions .btn { padding: 8px 14px; font-size: 13px; }
 
+/* Divider sutil dentro de la disclosure (entre los sliders y la
+ * opcion TikTok). */
+.disclosure-divider {
+  margin: var(--space-4) 0 var(--space-3);
+  height: 1px;
+  background: var(--border);
+  border: none;
+}
+
+/* ============ Checkbox custom (F13.2.4) ============
+ * El input nativo queda visualmente oculto (accesible al teclado y
+ * al lector de pantalla); una `<span.checkbox-box>` hermana se
+ * pinta de cian al :checked. El tick es un mask SVG sobre un
+ * pseudo-elemento ::after del propio span para que se posicione
+ * exacto. */
+
+.field-checkbox { margin-bottom: var(--space-4); }
+.field-checkbox label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-2);
+  transition: border-color 0.15s, background 0.15s;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-body);
+}
+.field-checkbox label:hover {
+  border-color: var(--cyan);
+  background: var(--input-bg-focus);
+}
+.field-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+/* Caja visual del checkbox: span hermano del input (mismo nivel). */
+.field-checkbox .checkbox-box {
+  position: relative;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 4px;
+  background: var(--input-bg);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  margin-top: 1px;
+}
+.field-checkbox input:checked ~ .checkbox-box {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 224, 255, 0.40);
+}
+/* Tick: pseudo-element del span pintado con mask SVG. */
+.field-checkbox .checkbox-box::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background-color: #07080f;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center / contain no-repeat;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.field-checkbox input:checked ~ .checkbox-box::after { opacity: 1; }
+/* Foco accesible: anillo cyan al recibir foco con teclado. */
+.field-checkbox input:focus-visible ~ .checkbox-box {
+  box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.20);
+}
+
+.field-checkbox-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.field-checkbox-content .checkbox-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.field-checkbox-content .checkbox-title svg,
+.field-checkbox-content .checkbox-title [data-lucide] {
+  width: 16px; height: 16px;
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+.field-checkbox-content .field-hint {
+  margin-top: 0;
+  font-style: normal;
+  font-weight: 400;
+}
+
 /* ============ Drop zone customizado (F10-fix #3) ============
  * Sustituye al <input type="file"> nativo en upload.html. Click o
  * drag&drop. El input nativo se queda oculto pero presente para que

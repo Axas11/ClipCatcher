@@ -90,6 +90,28 @@
               Tu configuración de cuenta no se modifica.
             </p>
             <div id="sliders-slot"></div>
+
+            <hr class="disclosure-divider">
+
+            <div class="field-checkbox">
+              <label for="convert-tiktok">
+                <input type="checkbox" id="convert-tiktok" name="convert_tiktok">
+                <span class="checkbox-box"></span>
+                <span class="field-checkbox-content">
+                  <span class="checkbox-title">
+                    <i data-lucide="smartphone"></i>
+                    <span>Generar también versión TikTok (vertical 9:16)</span>
+                  </span>
+                  <p class="field-hint">
+                    Crea una versión adicional optimizada para TikTok / Reels / Shorts.
+                    Procesa cada clip en formato vertical con facecam superpuesta.
+                    <strong>Configuración hardcoded para grabaciones con setup específico
+                    de OBS</strong> — en otras configuraciones puede salir descuadrado.
+                  </p>
+                </span>
+              </label>
+            </div>
+
             <div class="disclosure-actions">
               <button type="button" class="btn btn-ghost" id="btn-reset-defaults">
                 <i data-lucide="rotate-ccw"></i> Restablecer a mis defaults
@@ -372,6 +394,7 @@
       progressBytes.textContent = `0 / ${fmtBytes(file.size)}`;
 
       const overrides = buildOverrides();
+      const convertTiktok = document.getElementById('convert-tiktok').checked;
 
       try {
         const video = await uploadVideo(file, (frac) => {
@@ -379,10 +402,17 @@
           progressBar.style.width = pct + '%';
           progressLabel.textContent = pct + '%';
           progressBytes.textContent = `${fmtBytes(Math.round(frac * file.size))} / ${fmtBytes(file.size)}`;
-        }, overrides);
-        const msg = overrides
-          ? 'Vídeo subido con configuración personalizada, procesando…'
-          : 'Vídeo subido, procesando…';
+        }, overrides, convertTiktok);
+        let msg;
+        if (overrides && convertTiktok) {
+          msg = 'Vídeo subido (configuración personalizada + variante TikTok), procesando…';
+        } else if (convertTiktok) {
+          msg = 'Vídeo subido (también se generará versión TikTok), procesando…';
+        } else if (overrides) {
+          msg = 'Vídeo subido con configuración personalizada, procesando…';
+        } else {
+          msg = 'Vídeo subido, procesando…';
+        }
         sessionStorage.setItem('toast.upload.success', msg);
         location.replace(`video.html?id=${video.id}`);
       } catch (err) {

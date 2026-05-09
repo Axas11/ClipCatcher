@@ -151,8 +151,9 @@ export async function deleteVideo(videoId) {
  * todos los navegadores. `overrides` (F10.2) es un objeto opcional con
  * `chain_window_seconds`, `clip_margin_seconds`, `clip_duration_seconds`;
  * solo se anaden los campos no nulos al FormData (asi el backend trata
- * NULL como "no override" y cae a defaults del usuario). */
-export function uploadVideo(file, onProgress, overrides = null) {
+ * NULL como "no override" y cae a defaults del usuario).
+ * `convertTiktok` (F13.2.4): si true, el processor genera variante 9:16. */
+export function uploadVideo(file, onProgress, overrides = null, convertTiktok = false) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd = new FormData();
@@ -162,6 +163,9 @@ export function uploadVideo(file, onProgress, overrides = null) {
         if (overrides[k] != null) fd.append(k, String(overrides[k]));
       }
     }
+    // Solo enviamos el flag si esta activo; el backend tiene default
+    // False, asi un upload sin checkbox se comporta como antes.
+    if (convertTiktok) fd.append('convert_to_tiktok', 'true');
     xhr.open('POST', API_BASE + '/videos');
     const token = getToken();
     if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
