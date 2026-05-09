@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -47,6 +47,20 @@ class Video(Base):
     processed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    # Overrides por video de los settings del detector (F10.2). Si vienen
+    # como NULL, el processor cae a los defaults del User propietario y
+    # despues a los del detector. Los rangos validos los aplica Pydantic
+    # en el endpoint de subida; aqui solo persistimos el valor.
+    chain_window_seconds_override: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    clip_margin_seconds_override: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )
+    clip_duration_seconds_override: Mapped[float | None] = mapped_column(
+        Float, nullable=True
     )
 
     owner: Mapped["User"] = relationship(back_populates="videos")

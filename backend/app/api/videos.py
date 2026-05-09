@@ -11,6 +11,7 @@ from fastapi import (
     BackgroundTasks,
     Depends,
     File,
+    Form,
     HTTPException,
     Response,
     UploadFile,
@@ -45,6 +46,13 @@ _CHUNK_SIZE = 1024 * 1024  # 1 MiB por lectura
 def upload_video(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    # Overrides opcionales del detector por este video (F10.2). Si vienen,
+    # Pydantic valida el rango con ge/le y FastAPI devuelve 422 con detail
+    # estructurado por campo. Si no, el processor cae a los settings del
+    # User y luego a los del detector.
+    chain_window_seconds: float | None = Form(default=None, ge=1.0, le=60.0),
+    clip_margin_seconds: float | None = Form(default=None, ge=0.0, le=10.0),
+    clip_duration_seconds: float | None = Form(default=None, ge=1.0, le=60.0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Video:
@@ -54,6 +62,7 @@ def upload_video(
     ``STORAGE_PATH/videos/{user_id}/{uuid}.{ext}`` controlando el tamano
     contra ``MAX_UPLOAD_BYTES`` mientras escribe (sin cargar todo en memoria),
     crea la fila ``Video`` y delega el analisis a un ``BackgroundTask``.
+    Acepta overrides opcionales del detector por video.
     """
     if not file.filename:
         raise HTTPException(
@@ -104,6 +113,9 @@ def upload_video(
         original_filename=file.filename,
         stored_path=str(stored_path),
         status=VIDEO_STATUS_UPLOADED,
+        chain_window_seconds_override=chain_window_seconds,
+        clip_margin_seconds_override=clip_margin_seconds,
+        clip_duration_seconds_override=clip_duration_seconds,
     )
     db.add(video)
     db.commit()

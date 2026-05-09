@@ -43,19 +43,39 @@ def process_video(video_id: int, db_factory: Callable[[], Session]) -> None:
         video.status = VIDEO_STATUS_PROCESSING
         db.commit()
 
-        # Configuracion del detector personalizada por usuario (F6X). Si el
-        # User no se encuentra (raro), `analyze_video` cae a sus defaults.
+        # Configuracion del detector con prioridad explicita (F10.2):
+        # 1) override por video (Video.X_override) si lo paso el cliente
+        #    en el upload.
+        # 2) settings del User propietario (F6X) si existe.
+        # 3) defaults del propio analyze_video (constante + config.json).
+        # `None` se traduce a "no se aplica este nivel" -> el siguiente
+        # toma el relevo.
         owner = db.get(User, video.user_id)
-        user_settings = (
+
+        def _pick(field: str) -> float | None:
+            override = getattr(video, f"{field}_override", None)
+            if override is not None:
+                return override
+            if owner is not None:
+                return getattr(owner, field, None)
+            return None
+
+        detector_settings = {
+            "chain_window_seconds": _pick("chain_window_seconds"),
+            "clip_margin_seconds": _pick("clip_margin_seconds"),
+            "clip_duration_seconds": _pick("clip_duration_seconds"),
+        }
+        logger.info(
+            "process_video: video %d settings -> %s (override? %s)",
+            video_id,
+            detector_settings,
             {
-                "chain_window_seconds": owner.chain_window_seconds,
-                "clip_margin_seconds": owner.clip_margin_seconds,
-                "clip_duration_seconds": owner.clip_duration_seconds,
-            }
-            if owner is not None
-            else {}
+                "chain": video.chain_window_seconds_override is not None,
+                "margin": video.clip_margin_seconds_override is not None,
+                "duration": video.clip_duration_seconds_override is not None,
+            },
         )
-        windows = analyze_video(video.stored_path, **user_settings)
+        windows = analyze_video(video.stored_path, **detector_settings)
         logger.info(
             "process_video: video %d -> %d ventanas detectadas",
             video_id,
