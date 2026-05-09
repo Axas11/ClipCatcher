@@ -8,9 +8,11 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.api import auth as auth_router
 from app.api import clips as clips_router
+from app.api import oauth as oauth_router
 from app.api import users as users_router
 from app.api import videos as videos_router
 from app.core.config import get_settings
@@ -48,6 +50,17 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="ClipCatcher API", version="0.1.0", lifespan=lifespan)
 
+# SessionMiddleware lo necesita authlib para guardar el state CSRF y el
+# nonce del id_token entre /api/auth/google/login y /callback. La cookie
+# es HttpOnly y firmada con `app_secret_key`. SameSite=lax permite que
+# Google redirija de vuelta con la cookie presente.
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=get_settings().app_secret_key,
+    same_site="lax",
+    https_only=False,  # localhost. En produccion poner True con HTTPS.
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -58,6 +71,7 @@ app.add_middleware(
 
 
 app.include_router(auth_router.router, prefix="/api")
+app.include_router(oauth_router.router, prefix="/api")
 app.include_router(users_router.router, prefix="/api")
 app.include_router(videos_router.router, prefix="/api")
 app.include_router(clips_router.router, prefix="/api")
