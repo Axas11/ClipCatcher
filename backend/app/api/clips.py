@@ -77,3 +77,37 @@ def stream_clip(
     """
     _clip, path = _get_owned_clip(clip_id, db, current_user)
     return FileResponse(path, media_type="video/mp4")
+
+
+@router.get("/{clip_id}/tiktok")
+def download_clip_tiktok(
+    clip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Descarga la variante vertical TikTok 9:16 del clip (F13.2).
+
+    Se reusa `_get_owned_clip` para autorizacion (404 unificado si no
+    existe o no pertenece al usuario). Si el clip existe pero su
+    `tiktok_path` es NULL, devolvemos 404 con un detail especifico
+    porque la variante no se genero (el usuario no marco el checkbox).
+    Si el path esta en BD pero el archivo ya no esta en disco, 410
+    Gone (mismo patron que el download/stream del clip horizontal).
+    """
+    clip, _horizontal_path = _get_owned_clip(clip_id, db, current_user)
+    if not clip.tiktok_path:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="version TikTok no disponible",
+        )
+    tiktok_path = Path(clip.tiktok_path)
+    if not tiktok_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="el archivo TikTok del clip ya no esta disponible",
+        )
+    return FileResponse(
+        tiktok_path,
+        media_type="video/mp4",
+        filename=f"clip_{clip.id}_tiktok.mp4",
+    )
