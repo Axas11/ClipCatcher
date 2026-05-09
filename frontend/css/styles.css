@@ -401,6 +401,30 @@ input[type="file"] {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Iconos Lucide: por defecto 24x24, los normalizamos para que encajen en
+ * botones y badges sin desbordar. */
+.btn [data-lucide],
+.btn svg.lucide {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.status [data-lucide],
+.status svg.lucide {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  vertical-align: -1px;
+  margin-right: 4px;
+}
+
+/* Animacion de rotacion para el icono "loader" en estados processing. */
+.spin-loader [data-lucide],
+.spin-loader svg.lucide {
+  animation: spin 1.2s linear infinite;
+}
+
 .processing-banner {
   display: flex;
   align-items: center;

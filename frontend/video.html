@@ -21,7 +21,9 @@
       </a>
       <div class="row">
         <span class="user-pill" id="user-pill">…</span>
-        <button class="btn btn-ghost" id="btn-logout" type="button">Cerrar sesión</button>
+        <button class="btn btn-ghost" id="btn-logout" type="button">
+          <i data-lucide="log-out"></i> Cerrar sesión
+        </button>
       </div>
     </header>
 
@@ -41,11 +43,26 @@
     </section>
   </main>
 
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
     import { getVideo, getMe, fetchClipBlobUrl, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
+
+    if (window.lucide) window.lucide.createIcons();
+
+    function statusIcon(status) {
+      return {
+        uploaded: 'clock',
+        processing: 'loader',
+        done: 'check-circle',
+        failed: 'x-circle',
+      }[status] || 'circle';
+    }
+    function renderIcons() {
+      if (window.lucide) window.lucide.createIcons();
+    }
 
     const POLL_MS = 5000;
     const params = new URLSearchParams(location.search);
@@ -89,17 +106,28 @@
             Refrescamos automáticamente cada ${POLL_MS / 1000} s.
           </div>
         </div>
-        <p class="text-mute">Estado actual: <span class="status status-${video.status}">${video.status}</span></p>`;
+        <p class="text-mute">Estado actual:
+          <span class="status status-${video.status} spin-loader">
+            <i data-lucide="${statusIcon(video.status)}"></i>${video.status}
+          </span>
+        </p>`;
+      renderIcons();
     }
 
     function renderFailed(video) {
       slot.innerHTML = `
         <h1>${escapeHtml(video.original_filename)}</h1>
         <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)}</p>
+        <div class="row" style="margin-bottom: 14px;">
+          <span class="status status-failed">
+            <i data-lucide="x-circle"></i>failed
+          </span>
+        </div>
         <div class="alert alert-error">
           <strong>El procesamiento ha fallado.</strong>
           Revisa los logs del backend o intenta subir el vídeo de nuevo.
         </div>`;
+      renderIcons();
     }
 
     async function renderDone(video) {
@@ -113,10 +141,13 @@
         <h1>${escapeHtml(video.original_filename)}</h1>
         <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)} · procesado ${fmtDate(video.processed_at)}</p>
         <div class="row" style="margin-bottom: 18px;">
-          <span class="status status-done">done</span>
+          <span class="status status-done">
+            <i data-lucide="check-circle"></i>done
+          </span>
           <span class="text-mute">${video.clips.length} clip(s) generados</span>
         </div>
         ${clipsHtml}`;
+      renderIcons();
 
       if (!video.clips.length) return;
 
@@ -141,8 +172,11 @@
             <div class="clip-meta">clip #${c.id} · ${c.start_time.toFixed(1)}s → ${c.end_time.toFixed(1)}s · ${(c.end_time - c.start_time).toFixed(1)}s</div>
             <video controls preload="metadata" src="${streamUrl}"></video>
             <div class="row row-end">
-              <button class="btn" data-download="${c.id}" type="button">Descargar</button>
+              <button class="btn" data-download="${c.id}" type="button">
+                <i data-lucide="download"></i> Descargar
+              </button>
             </div>`;
+          renderIcons();
           card.querySelector('[data-download]').addEventListener('click', () => downloadClip(c.id));
         } catch (err) {
           card.innerHTML = `

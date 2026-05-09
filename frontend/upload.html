@@ -21,7 +21,9 @@
       </a>
       <div class="row">
         <span class="user-pill" id="user-pill">…</span>
-        <button class="btn btn-ghost" id="btn-logout" type="button">Cerrar sesión</button>
+        <button class="btn btn-ghost" id="btn-logout" type="button">
+          <i data-lucide="log-out"></i> Cerrar sesión
+        </button>
       </div>
     </header>
 
@@ -48,17 +50,23 @@
         <div class="spacer-md"></div>
         <div class="row row-between">
           <a class="btn btn-ghost" href="dashboard.html">Cancelar</a>
-          <button type="submit" class="btn btn-primary" id="btn-upload">Subir y procesar</button>
+          <button type="submit" class="btn btn-primary" id="btn-upload">
+            <i data-lucide="upload"></i>
+            <span id="btn-upload-label">Subir y procesar</span>
+          </button>
         </div>
       </form>
     </section>
   </main>
 
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
     import { uploadVideo, getMe, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
+
+    if (window.lucide) window.lucide.createIcons();
 
     const userPill = document.getElementById('user-pill');
     const form = document.getElementById('form-upload');
@@ -102,7 +110,7 @@
         return;
       }
 
-      btn.disabled = true; btn.textContent = 'Subiendo…';
+      btn.disabled = true; document.getElementById('btn-upload-label').textContent = 'Subiendo…';
       fileInput.disabled = true;
       progressBlock.classList.remove('hidden');
       progressBar.style.width = '0%';
@@ -125,7 +133,7 @@
           else if (err.status === 400) msg = err.detail || 'El archivo no es válido.';
         }
         showAlert('error', msg);
-        btn.disabled = false; btn.textContent = 'Subir y procesar';
+        btn.disabled = false; document.getElementById('btn-upload-label').textContent = 'Subir y procesar';
         fileInput.disabled = false;
       }
     });

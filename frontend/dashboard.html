@@ -21,7 +21,9 @@
       </a>
       <div class="row">
         <span class="user-pill" id="user-pill">…</span>
-        <button class="btn btn-ghost" id="btn-logout" type="button">Cerrar sesión</button>
+        <button class="btn btn-ghost" id="btn-logout" type="button">
+          <i data-lucide="log-out"></i> Cerrar sesión
+        </button>
       </div>
     </header>
 
@@ -31,7 +33,9 @@
           <h1>Mis vídeos</h1>
           <p class="lead">Sube un vídeo y ClipCatcher detectará los highlights.</p>
         </div>
-        <a class="btn btn-primary" href="upload.html">Subir nuevo vídeo</a>
+        <a class="btn btn-primary" href="upload.html">
+          <i data-lucide="upload-cloud"></i> Subir nuevo vídeo
+        </a>
       </div>
 
       <div id="alert-slot"></div>
@@ -45,11 +49,15 @@
     </section>
   </main>
 
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
     import { listVideos, getMe, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
+
+    // Renderiza iconos estaticos del header al cargar la pagina.
+    if (window.lucide) window.lucide.createIcons();
 
     const userPill = document.getElementById('user-pill');
     const slot = document.getElementById('videos-slot');
@@ -76,12 +84,16 @@
       }
       const cards = videos.map(v => {
         const status = v.status || 'uploaded';
+        const icon = statusIcon(status);
+        const spinClass = status === 'processing' ? ' spin-loader' : '';
         return `
           <a class="video-card" href="video.html?id=${v.id}">
             <span class="filename">${escapeHtml(v.original_filename)}</span>
             <div class="meta">
               <span>#${v.id}</span>
-              <span class="status status-${status}">${status}</span>
+              <span class="status status-${status}${spinClass}">
+                <i data-lucide="${icon}"></i>${status}
+              </span>
             </div>
             <div class="meta">
               <span>${fmtDate(v.uploaded_at)}</span>
@@ -89,6 +101,16 @@
           </a>`;
       }).join('');
       slot.innerHTML = `<div class="card-grid">${cards}</div>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function statusIcon(status) {
+      return {
+        uploaded: 'clock',
+        processing: 'loader',
+        done: 'check-circle',
+        failed: 'x-circle',
+      }[status] || 'circle';
     }
 
     function escapeHtml(s) {
