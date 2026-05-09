@@ -51,6 +51,10 @@
     import { getVideo, getMe, fetchClipBlobUrl, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
+    import { initPageTransitions } from './js/animations.js';
+
+    // F12.3d: page transition fade entre paginas internas.
+    initPageTransitions();
 
     // Drena el toast dejado por upload.html tras una subida exitosa.
     const _toastUpload = sessionStorage.getItem('toast.upload.success');

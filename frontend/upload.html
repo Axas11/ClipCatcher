@@ -114,6 +114,10 @@
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
     import { mountSlider } from './js/slider.js';
+    import { initPageTransitions } from './js/animations.js';
+
+    // F12.3d: page transition fade entre paginas internas.
+    initPageTransitions();
 
     if (!requireAuth()) throw new Error('redirigiendo');
 
