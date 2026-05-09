@@ -3,11 +3,17 @@
  * (clipcatcher_pidaw.html, mantenida fuera del repo). Tema dark con
  * acentos neon cian/morado. */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 html { scroll-behavior: smooth; }
 
 :root {
+  /* Tipografia (F13.1). Geist Sans para display/headings,
+   * Inter para texto corrido, JetBrains Mono para datos. */
+  --font-display: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
   --bg-deep: #07080f;
   --bg-card: #0f1320;
   --bg-card-2: #131829;
@@ -70,8 +76,10 @@ section[id] { scroll-margin-top: var(--scroll-offset); }
 html, body {
   background: var(--bg-deep);
   color: var(--text);
-  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-weight: 300;
+  font-family: var(--font-body);
+  /* Inter 400 es la version regular; Inter 300 (light) se ve demasiado
+   * fino sobre el fondo oscuro y pierde legibilidad en parrafos. */
+  font-weight: 400;
   line-height: 1.55;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -140,7 +148,7 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 44px;
   letter-spacing: -1px;
@@ -153,7 +161,7 @@ a:hover { text-decoration: underline; }
 }
 
 .hero-tagline {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 40px;
   font-weight: 700;
   letter-spacing: -1px;
@@ -198,7 +206,7 @@ a:hover { text-decoration: underline; }
 
 .hero-footnote {
   margin-top: 8px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-mute);
   letter-spacing: 1.5px;
@@ -231,7 +239,7 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   letter-spacing: -0.5px;
   font-size: 28px;
@@ -255,7 +263,7 @@ a:hover { text-decoration: underline; }
 }
 
 .user-pill {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-mute);
   border: 1px solid var(--border-soft);
@@ -266,7 +274,7 @@ a:hover { text-decoration: underline; }
 
 .tag {
   display: inline-block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 2px;
@@ -281,13 +289,16 @@ a:hover { text-decoration: underline; }
 /* ============ Tipografia ============ */
 
 h1, h2, h3 {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.5px;
   color: var(--text);
 }
 
-h1 { font-size: 36px; line-height: 1.1; margin-bottom: 8px; }
+/* Tras la migracion a Geist Sans (F13.1) bajamos H1 de 36 a 32px:
+ * Geist es ~5% mas ancho que Syne y en mobile el H1 del dashboard
+ * llegaba a romper layout en 320px de ancho. */
+h1 { font-size: 32px; line-height: 1.15; margin-bottom: 8px; }
 h2 { font-size: 22px; margin-bottom: 14px; }
 h3 { font-size: 16px; margin-bottom: 8px; }
 
@@ -299,7 +310,7 @@ h3 { font-size: 16px; margin-bottom: 8px; }
   max-width: 640px;
 }
 
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-mute); }
+.mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-mute); }
 
 /* ============ Cards ============ */
 
@@ -367,7 +378,7 @@ h3 { font-size: 16px; margin-bottom: 8px; }
 }
 
 .video-card .meta {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-mute);
   display: flex;
@@ -396,7 +407,7 @@ h3 { font-size: 16px; margin-bottom: 8px; }
 }
 
 .clip-card .clip-meta {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-mute);
 }
@@ -414,7 +425,7 @@ h3 { font-size: 16px; margin-bottom: 8px; }
 label,
 .field-label {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -487,7 +498,7 @@ input[type="file"] {
 }
 
 .slider-value {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 14px;
   color: var(--cyan);
   font-weight: 500;
@@ -558,7 +569,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 .slider-marks {
   display: flex;
   justify-content: space-between;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   margin-top: var(--space-1);
@@ -585,7 +596,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 14px;
   color: var(--text);
@@ -626,7 +637,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 
 .disclosure-summary .summary-status {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -737,14 +748,14 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   filter: drop-shadow(0 0 18px rgba(0, 224, 255, 0.55));
 }
 .file-drop-primary {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 15px;
   color: var(--text);
   margin: 0;
 }
 .file-drop-secondary {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.06em;
   color: var(--text-tertiary);
@@ -771,7 +782,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   gap: 2px;
 }
 .file-drop-name {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   color: var(--text);
   margin: 0;
@@ -780,7 +791,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   text-overflow: ellipsis;
 }
 .file-drop-size {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   margin: 0;
@@ -851,7 +862,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   border: 1px solid rgba(251, 191, 36, 0.40);
   background: rgba(251, 191, 36, 0.08);
   color: var(--warning);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -892,7 +903,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 24px;
   letter-spacing: 0.5px;
@@ -907,7 +918,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   line-height: 1.15;
 }
 .account-header-email {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-mute);
   margin: 0 0 var(--space-2);
@@ -918,7 +929,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1422,14 +1433,14 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   color: var(--text-mute);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .stat-value {
   font-size: 32px;
   font-weight: 600;
   color: var(--cyan);
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   line-height: 1;
   margin-top: 4px;
 }
@@ -1488,7 +1499,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 .status {
   display: inline-flex;
   align-items: center;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1731,7 +1742,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1744,9 +1755,10 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .hero-eyebrow svg { width: 12px; height: 12px; }
 .hero-title {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(38px, 6vw, 72px);
+  /* Bajado ligeramente tras F13.1 (Geist mas ancho que Syne). */
+  font-size: clamp(36px, 5.6vw, 68px);
   line-height: 1.05;
   letter-spacing: -1.5px;
   margin: 0 0 var(--space-4);
@@ -1774,7 +1786,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .hero-cta .btn { padding: 14px 26px; font-size: 16px; }
 .hero-footnote {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   letter-spacing: 0.18em;
@@ -1788,7 +1800,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   margin: 0 auto var(--space-7);
 }
 .section-heading h2 {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(28px, 4vw, 42px);
   letter-spacing: -1px;
@@ -1822,7 +1834,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   overflow: hidden;
 }
 .step-number {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: clamp(50px, 7vw, 76px);
   line-height: 1;
@@ -1923,7 +1935,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   gap: var(--space-2);
 }
 .stat-counter .stat-number {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(40px, 6vw, 64px);
   line-height: 1;
@@ -1933,7 +1945,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   -webkit-text-fill-color: transparent;
 }
 .stat-counter .stat-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.10em;
   text-transform: uppercase;
@@ -1985,7 +1997,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .footer-brand .brand-icon { width: 22px; height: 22px; }
 .footer-brand .brand-text {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 18px;
   background: var(--gradient);
@@ -1995,7 +2007,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .footer-tagline {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   letter-spacing: 0.06em;
@@ -2016,7 +2028,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .footer-links a:hover { color: var(--cyan); text-decoration: none; }
 .footer-meta {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   text-align: right;
@@ -2096,7 +2108,7 @@ body[data-page-fade="out"] { opacity: 0; }
 .activity-text { flex: 1; min-width: 0; color: var(--text); }
 .activity-text strong { font-weight: 500; }
 .activity-time {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
   flex-shrink: 0;
@@ -2112,7 +2124,7 @@ body[data-page-fade="out"] { opacity: 0; }
   padding: var(--space-3) var(--space-4);
   font-size: 12px;
   color: var(--text-mute);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.04em;
   opacity: 0;
   transform: translateY(8px);
@@ -2144,7 +2156,7 @@ body[data-page-fade="out"] { opacity: 0; }
   text-align: center;
 }
 .not-found-code {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(120px, 18vw, 200px);
   line-height: 1;
@@ -2156,7 +2168,7 @@ body[data-page-fade="out"] { opacity: 0; }
   margin: 0;
 }
 .not-found-msg {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(20px, 3vw, 28px);
   margin: var(--space-3) 0 var(--space-2);
