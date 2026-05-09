@@ -20,6 +20,7 @@ from app.models.video import (
 )
 from detector.analyzer import analyze_video
 from detector.exporter import export_clip
+from detector.tiktok_exporter import convert_to_tiktok
 
 logger = logging.getLogger(__name__)
 
@@ -104,11 +105,33 @@ def process_video(video_id: int, db_factory: Callable[[], Session]) -> None:
                     video_id,
                 )
                 continue
+
+            # F13.2: variante vertical 9:16 TikTok si el usuario lo
+            # marco al subir. Si la conversion falla NO abortamos el
+            # procesamiento — el clip horizontal ya esta exportado y
+            # debe llegar al usuario aunque la variante secundaria
+            # falle por algun motivo (formato raro, mascara faltante,
+            # ffmpeg lento, etc.).
+            tiktok_path: str | None = None
+            if video.convert_to_tiktok:
+                tiktok_output = clips_root / f"clip_{idx:03d}_tiktok.mp4"
+                try:
+                    convert_to_tiktok(str(output_path), str(tiktok_output))
+                    tiktok_path = str(tiktok_output)
+                except Exception:  # noqa: BLE001
+                    logger.warning(
+                        "process_video: fallo conversion TikTok del clip %d "
+                        "(%.2f-%.2f) del video %d (clip horizontal OK)",
+                        idx, start, end, video_id,
+                        exc_info=True,
+                    )
+
             db.add(Clip(
                 video_id=video.id,
                 start_time=start,
                 end_time=end,
                 file_path=str(output_path),
+                tiktok_path=tiktok_path,
             ))
 
         video.status = VIDEO_STATUS_DONE

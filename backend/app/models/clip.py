@@ -26,6 +26,10 @@ class Clip(Base):
     start_time: Mapped[float] = mapped_column(Float, nullable=False)
     end_time: Mapped[float] = mapped_column(Float, nullable=False)
     file_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    # Variante vertical 9:16 para TikTok/Reels/Shorts (F13.2). Es NULL
+    # si el usuario no marco el checkbox al subir, o si la conversion
+    # fallo (el procesamiento no aborta por una variante secundaria).
+    tiktok_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

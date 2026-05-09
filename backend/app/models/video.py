@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Float, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -61,6 +61,14 @@ class Video(Base):
     )
     clip_duration_seconds_override: Mapped[float | None] = mapped_column(
         Float, nullable=True
+    )
+
+    # Flag para que el processor genere ademas la variante vertical
+    # 9:16 estilo TikTok de cada clip (F13.2). Default False para que
+    # el comportamiento del MVP no cambie cuando el usuario no marca
+    # el checkbox.
+    convert_to_tiktok: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
     )
 
     owner: Mapped["User"] = relationship(back_populates="videos")

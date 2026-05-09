@@ -53,6 +53,10 @@ def upload_video(
     chain_window_seconds: float | None = Form(default=None, ge=1.0, le=60.0),
     clip_margin_seconds: float | None = Form(default=None, ge=0.0, le=10.0),
     clip_duration_seconds: float | None = Form(default=None, ge=1.0, le=60.0),
+    # F13.2: si True, el processor genera ademas la variante 9:16
+    # TikTok de cada clip tras la exportacion normal. Default False
+    # para no cambiar el comportamiento del MVP.
+    convert_to_tiktok: bool = Form(default=False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Video:
@@ -116,6 +120,7 @@ def upload_video(
         chain_window_seconds_override=chain_window_seconds,
         clip_margin_seconds_override=clip_margin_seconds,
         clip_duration_seconds_override=clip_duration_seconds,
+        convert_to_tiktok=convert_to_tiktok,
     )
     db.add(video)
     db.commit()
