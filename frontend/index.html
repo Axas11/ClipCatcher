@@ -8,22 +8,28 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <main class="auth-shell">
-    <section class="card card-narrow">
-      <div class="row row-between" style="margin-bottom: 18px;">
-        <div class="brand">
-          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
-            <path d="m6.2 5.3 3.1 3.9"/>
-            <path d="m12.4 3.4 3.1 4"/>
-            <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
-          </svg>
-          <span class="brand-text">ClipCatcher</span>
-        </div>
-        <span class="tag">demo · TFG</span>
+  <main class="hero-split">
+    <section class="hero-side">
+      <div class="hero-brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
+          <path d="m6.2 5.3 3.1 3.9"/>
+          <path d="m12.4 3.4 3.1 4"/>
+          <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+        </svg>
+        <span class="brand-text">ClipCatcher</span>
       </div>
-      <p class="lead">Detecta highlights en tus partidas y conviértelos en clips listos para compartir.</p>
+      <h1 class="hero-tagline">IA que detecta tus mejores momentos</h1>
+      <p class="hero-subtitle">Sube tu grabación, deja que ClipCatcher analice cada frame, y obtén tus highlights listos para compartir.</p>
+      <ul class="hero-features">
+        <li><i data-lucide="zap"></i><span>Detección automática con CNN entrenada propia</span></li>
+        <li><i data-lucide="clock"></i><span>Procesamiento en segundos, no horas</span></li>
+        <li><i data-lucide="download"></i><span>Clips listos para publicar</span></li>
+      </ul>
+      <span class="hero-footnote">TFG · 2º DAW · Curso 2025-2026</span>
+    </section>
 
+    <section class="card hero-form">
       <div class="tabs">
         <button class="tab active" data-tab="login" type="button">Iniciar sesión</button>
         <button class="tab" data-tab="register" type="button">Crear cuenta</button>
@@ -61,12 +67,15 @@
     </section>
   </main>
 
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
     import { login, register, ApiError } from './js/api.js';
     import { saveToken, getToken } from './js/auth.js';
 
     // Si ya hay token, ir directos al dashboard.
     if (getToken()) location.replace('dashboard.html');
+
+    if (window.lucide) window.lucide.createIcons();
 
     const tabs = document.querySelectorAll('.tab');
     const formLogin = document.getElementById('form-login');

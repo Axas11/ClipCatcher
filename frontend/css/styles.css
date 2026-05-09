@@ -63,11 +63,120 @@ a:hover { text-decoration: underline; }
 }
 
 .auth-shell {
-  /* Para index.html: login/registro centrados verticalmente. */
+  /* Layout antiguo de login/registro centrado. Conservado por compat;
+   * la landing principal usa `.hero-split`. */
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 24px;
+}
+
+/* Landing con dos columnas: hero a la izquierda, formulario a la derecha. */
+.hero-split {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 28px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+  min-height: 100vh;
+}
+
+@media (min-width: 900px) {
+  .hero-split {
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+  }
+}
+
+.hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.hero-brand .brand-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.hero-tagline {
+  font-family: 'Syne', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.05;
+  color: var(--text);
+  margin: 0;
+}
+
+.hero-subtitle {
+  font-size: 17px;
+  color: var(--text-mute);
+  max-width: 480px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.hero-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.hero-features li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.hero-features [data-lucide],
+.hero-features svg.lucide {
+  width: 22px;
+  height: 22px;
+  color: var(--cyan);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(0, 224, 255, 0.4));
+}
+
+.hero-footnote {
+  margin-top: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-mute);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.hero-form {
+  width: 100%;
+  max-width: 480px;
+  justify-self: center;
+}
+
+@media (max-width: 600px) {
+  .hero-tagline { font-size: 30px; }
+  .hero-brand { font-size: 36px; }
+  .hero-brand .brand-icon { width: 36px; height: 36px; }
+  .hero-split { padding: 28px 18px; }
 }
 
 .app-header {
