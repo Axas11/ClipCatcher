@@ -311,6 +311,17 @@ h3 { font-size: 16px; margin-bottom: 8px; }
 
 .video-card a { color: var(--text); }
 
+/* El <a> interno hereda el layout flex que antes vivia en .video-card.
+ * Asi mantiene apariencia identica al diseño previo de F6.5. */
+.video-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+.video-card-link:hover { text-decoration: none; }
+
 .video-card .filename {
   font-weight: 500;
   word-break: break-all;
@@ -635,6 +646,130 @@ input[type="file"] {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ============ Modal de confirmacion (F9.3) ============ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 8, 15, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.modal-backdrop.modal-show { opacity: 1; }
+.modal-backdrop.modal-hide { opacity: 0; }
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+  transform: scale(0.96);
+  transition: transform 0.22s ease;
+}
+.modal-backdrop.modal-show .modal { transform: scale(1); }
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.modal-icon {
+  display: inline-flex;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-icon svg { width: 20px; height: 20px; }
+.modal-icon-danger {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--danger);
+}
+.modal-icon-primary {
+  background: rgba(0, 224, 255, 0.10);
+  color: var(--cyan);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 19px;
+}
+
+.modal-body {
+  color: var(--text-mute);
+  font-size: 14px;
+  line-height: 1.55;
+  margin-bottom: 22px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions .btn { padding: 10px 18px; font-size: 14px; }
+
+/* Boton destructivo, usado en confirmaciones de borrado. */
+.btn-danger {
+  background: var(--danger);
+  border: 1px solid var(--danger);
+  color: #1a0808;
+  font-weight: 600;
+}
+.btn-danger:hover {
+  border-color: var(--danger);
+  box-shadow: 0 4px 18px rgba(248, 113, 113, 0.35);
+}
+.btn-danger svg { width: 16px; height: 16px; }
+
+/* ============ Boton borrar en cards de video (F9.3) ============ */
+
+/* La card debe ser positioned para que el boton absolute se coloque
+ * dentro de ella. .video-card ya tiene cursor:pointer; este boton
+ * cuela su click sin propagarlo a la <a>. */
+.video-card { position: relative; }
+
+.video-card .btn-card-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s, color 0.15s, border-color 0.15s, background 0.15s;
+  padding: 0;
+  font-family: inherit;
+}
+.video-card:hover .btn-card-delete,
+.video-card .btn-card-delete:focus { opacity: 1; }
+.video-card .btn-card-delete:hover {
+  color: var(--danger);
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(248, 113, 113, 0.10);
+}
+.video-card .btn-card-delete svg { width: 14px; height: 14px; }
 
 /* ============ Status badges (videos) ============ */
 

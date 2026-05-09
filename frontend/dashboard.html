@@ -68,9 +68,10 @@
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
-    import { listVideos, getMe, ApiError } from './js/api.js';
+    import { listVideos, getMe, deleteVideo, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
+    import { confirmModal } from './js/modal.js';
 
     // Drena toasts dejados por otras paginas (login OAuth, upload, etc).
     // Se hace antes del primer render para que aparezcan inmediatamente.
@@ -98,6 +99,11 @@
       try { return new Date(iso).toLocaleString('es-ES'); } catch (_) { return iso; }
     }
 
+    // Icono trash-2 inline (no Lucide CDN: el boton aparece sobre cards
+    // recien renderizadas y `lucide.createIcons()` puede no haber pasado
+    // todavia por ahi).
+    const TRASH_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>';
+
     function renderVideos(videos) {
       if (!videos.length) {
         slot.innerHTML = `
@@ -116,22 +122,62 @@
         const status = v.status || 'uploaded';
         const icon = statusIcon(status);
         const spinClass = status === 'processing' ? ' spin-loader' : '';
+        // El card es un div; el <a> de navegacion va dentro y el boton
+        // borrar es hermano del <a> (no se puede anidar <button> dentro
+        // de <a>: HTML invalido). Asi cada elemento captura sus clicks.
         return `
-          <a class="video-card" href="video.html?id=${v.id}">
-            <span class="filename">${escapeHtml(v.original_filename)}</span>
-            <div class="meta">
-              <span>#${v.id}</span>
-              <span class="status status-${status}${spinClass}">
-                <i data-lucide="${icon}"></i>${status}
-              </span>
-            </div>
-            <div class="meta">
-              <span>${fmtDate(v.uploaded_at)}</span>
-            </div>
-          </a>`;
+          <div class="video-card">
+            <a class="video-card-link" href="video.html?id=${v.id}">
+              <span class="filename">${escapeHtml(v.original_filename)}</span>
+              <div class="meta">
+                <span>#${v.id}</span>
+                <span class="status status-${status}${spinClass}">
+                  <i data-lucide="${icon}"></i>${status}
+                </span>
+              </div>
+              <div class="meta">
+                <span>${fmtDate(v.uploaded_at)}</span>
+              </div>
+            </a>
+            <button class="btn-card-delete" type="button"
+                    data-delete-id="${v.id}"
+                    data-delete-name="${escapeHtml(v.original_filename)}"
+                    aria-label="Borrar vídeo">${TRASH_SVG}</button>
+          </div>`;
       }).join('');
       slot.innerHTML = `<div class="card-grid">${cards}</div>`;
       if (window.lucide) window.lucide.createIcons();
+
+      // Enlazar handler de borrado en cada boton.
+      slot.querySelectorAll('.btn-card-delete').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = parseInt(btn.dataset.deleteId, 10);
+          const name = btn.dataset.deleteName || `vídeo #${id}`;
+          const ok = await confirmModal({
+            title: '¿Borrar este vídeo?',
+            body: `Vas a borrar "${name}" y todos sus clips. Esta acción no se puede deshacer.`,
+            confirmLabel: 'Borrar',
+            cancelLabel: 'Cancelar',
+            confirmVariant: 'danger',
+            icon: 'trash-2',
+          });
+          if (!ok) return;
+          btn.disabled = true;
+          try {
+            await deleteVideo(id);
+            showToast('Vídeo eliminado', 'success');
+            // Recargar la lista para reflejar el estado.
+            const fresh = await listVideos();
+            renderVideos(fresh);
+          } catch (err) {
+            const msg = err.detail || err.message || 'No se pudo borrar el vídeo.';
+            showToast(msg, 'error', 5000);
+            btn.disabled = false;
+          }
+        });
+      });
     }
 
     function statusIcon(status) {

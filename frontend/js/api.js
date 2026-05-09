@@ -106,6 +106,12 @@ export async function getVideo(videoId) {
   return res.json();
 }
 
+export async function deleteVideo(videoId) {
+  // 204 No Content: no hay body; resolver a true.
+  await _request(`/videos/${videoId}`, { method: 'DELETE' });
+  return true;
+}
+
 /* Sube un video. `onProgress` recibe un valor entre 0 y 1. Usa
  * XMLHttpRequest porque `fetch` aun no expone el progreso de subida en
  * todos los navegadores. */
