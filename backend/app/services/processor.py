@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.models.clip import Clip
+from app.models.user import User
 from app.models.video import (
     VIDEO_STATUS_DONE,
     VIDEO_STATUS_FAILED,
@@ -42,7 +43,19 @@ def process_video(video_id: int, db_factory: Callable[[], Session]) -> None:
         video.status = VIDEO_STATUS_PROCESSING
         db.commit()
 
-        windows = analyze_video(video.stored_path)
+        # Configuracion del detector personalizada por usuario (F6X). Si el
+        # User no se encuentra (raro), `analyze_video` cae a sus defaults.
+        owner = db.get(User, video.user_id)
+        user_settings = (
+            {
+                "chain_window_seconds": owner.chain_window_seconds,
+                "clip_margin_seconds": owner.clip_margin_seconds,
+                "clip_duration_seconds": owner.clip_duration_seconds,
+            }
+            if owner is not None
+            else {}
+        )
+        windows = analyze_video(video.stored_path, **user_settings)
         logger.info(
             "process_video: video %d -> %d ventanas detectadas",
             video_id,

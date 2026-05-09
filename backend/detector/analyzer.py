@@ -63,17 +63,29 @@ def _is_kill_frame(roi_bgr: Any) -> bool:
     return cls == 0
 
 
-def analyze_video(video_path: str) -> list[tuple[float, float]]:
+def analyze_video(
+    video_path: str,
+    *,
+    chain_window_seconds: float | None = None,
+    clip_margin_seconds: float | None = None,
+    clip_duration_seconds: float | None = None,
+) -> list[tuple[float, float]]:
     """Analiza un video y devuelve ventanas (inicio, fin) en segundos.
 
     Procesa un frame por segundo, recorta la zona del killfeed y aplica la
-    CNN binaria. Detecciones consecutivas dentro de ``_CHAIN_WINDOW_S`` se
-    fusionan en una sola ventana. La duracion y el margen de cada ventana
-    salen de ``config.json``.
+    CNN binaria. Detecciones consecutivas dentro de la ventana de
+    encadenamiento se fusionan en una sola ventana.
+
+    Los parametros del clipping pueden personalizarse por llamada (F6X,
+    configuracion por usuario). Si vienen como ``None``, se usan los
+    defaults: ``_CHAIN_WINDOW_S`` para la ventana de encadenamiento, y
+    ``margen_clip`` / ``duracion_clip`` de ``config.json`` para el
+    margen y la duracion.
     """
     config = _load_config()
-    margin = float(config.get("margen_clip", 2))
-    duration = float(config.get("duracion_clip", 6))
+    chain_window = chain_window_seconds if chain_window_seconds is not None else _CHAIN_WINDOW_S
+    margin = clip_margin_seconds if clip_margin_seconds is not None else float(config.get("margen_clip", 2))
+    duration = clip_duration_seconds if clip_duration_seconds is not None else float(config.get("duracion_clip", 6))
 
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -101,7 +113,7 @@ def analyze_video(video_path: str) -> list[tuple[float, float]]:
                     if clip_start is None:
                         clip_start = max(0.0, t - margin)
                         clip_end = t + duration
-                    elif clip_end is not None and t <= clip_end + _CHAIN_WINDOW_S:
+                    elif clip_end is not None and t <= clip_end + chain_window:
                         clip_end = t + duration
                     else:
                         windows.append((clip_start, clip_end))
@@ -114,7 +126,10 @@ def analyze_video(video_path: str) -> list[tuple[float, float]]:
     finally:
         cap.release()
 
-    logger.info("analyze_video: %s -> %d ventanas", video_path, len(windows))
+    logger.info(
+        "analyze_video: %s -> %d ventanas (chain=%.1fs margin=%.1fs duration=%.1fs)",
+        video_path, len(windows), chain_window, margin, duration,
+    )
     return windows
 
 
