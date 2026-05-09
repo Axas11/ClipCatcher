@@ -583,6 +583,90 @@ input[type="range"].slider:focus + .slider-tooltip,
   margin-top: var(--space-1);
 }
 
+/* ============ Disclosure colapsable (F10.2) ============
+ * Bloque de "Configuracion avanzada" en upload.html. <details>/<summary>
+ * nativos para ahorrar JS, restilizados para que casen con el resto del
+ * sistema. Indicador visual del estado a la derecha del summary. */
+
+.disclosure {
+  margin-top: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-2);
+  overflow: hidden;
+}
+.disclosure[open] { border-color: var(--border-soft); }
+
+.disclosure-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+  user-select: none;
+}
+.disclosure-summary::-webkit-details-marker { display: none; }
+.disclosure-summary::marker { display: none; }
+
+.disclosure-summary .chev {
+  width: 14px; height: 14px;
+  transition: transform 0.2s ease;
+  color: var(--text-mute);
+  flex-shrink: 0;
+}
+.disclosure[open] .disclosure-summary .chev { transform: rotate(90deg); }
+
+.disclosure-summary .summary-left {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.disclosure-summary .summary-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.summary-status[data-state="default"] {
+  color: var(--success);
+  border-color: rgba(52, 211, 153, 0.40);
+  background: rgba(52, 211, 153, 0.06);
+}
+.summary-status[data-state="custom"] {
+  color: var(--cyan);
+  border-color: rgba(0, 224, 255, 0.40);
+  background: rgba(0, 224, 255, 0.06);
+}
+.summary-status svg { width: 12px; height: 12px; }
+
+.disclosure-body {
+  padding: var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.disclosure-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+}
+.disclosure-actions .btn { padding: 8px 14px; font-size: 13px; }
+
 /* ============ Botones ============ */
 
 .btn {

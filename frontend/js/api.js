@@ -119,12 +119,20 @@ export async function deleteVideo(videoId) {
 
 /* Sube un video. `onProgress` recibe un valor entre 0 y 1. Usa
  * XMLHttpRequest porque `fetch` aun no expone el progreso de subida en
- * todos los navegadores. */
-export function uploadVideo(file, onProgress) {
+ * todos los navegadores. `overrides` (F10.2) es un objeto opcional con
+ * `chain_window_seconds`, `clip_margin_seconds`, `clip_duration_seconds`;
+ * solo se anaden los campos no nulos al FormData (asi el backend trata
+ * NULL como "no override" y cae a defaults del usuario). */
+export function uploadVideo(file, onProgress, overrides = null) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd = new FormData();
     fd.append('file', file);
+    if (overrides) {
+      for (const k of ['chain_window_seconds', 'clip_margin_seconds', 'clip_duration_seconds']) {
+        if (overrides[k] != null) fd.append(k, String(overrides[k]));
+      }
+    }
     xhr.open('POST', API_BASE + '/videos');
     const token = getToken();
     if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);

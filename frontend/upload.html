@@ -38,11 +38,37 @@
 
       <form id="form-upload">
         <div class="field">
-          <label for="file">Archivo de vídeo (.mp4, .mkv, .mov, …)</label>
+          <label class="field-label" for="file">Archivo de vídeo (.mp4, .mkv, .mov, …)</label>
           <input id="file" name="file" type="file" accept="video/*" required>
         </div>
 
-        <div id="progress-block" class="hidden">
+        <details class="disclosure" id="advanced-block">
+          <summary class="disclosure-summary">
+            <span class="summary-left">
+              <svg class="chev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              <i data-lucide="settings-2"></i>
+              <span>Configuración avanzada (opcional)</span>
+            </span>
+            <span class="summary-status" id="summary-status" data-state="default">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="summary-status-label">Usando tus valores predeterminados</span>
+            </span>
+          </summary>
+          <div class="disclosure-body">
+            <p class="field-hint" style="margin-bottom: var(--space-4); margin-top: 0;">
+              Estos valores sobrescriben tus defaults <strong>solo para este vídeo</strong>.
+              Tu configuración de cuenta no se modifica.
+            </p>
+            <div id="sliders-slot"></div>
+            <div class="disclosure-actions">
+              <button type="button" class="btn btn-ghost" id="btn-reset-defaults">
+                <i data-lucide="rotate-ccw"></i> Restablecer a mis defaults
+              </button>
+            </div>
+          </div>
+        </details>
+
+        <div id="progress-block" class="hidden" style="margin-top: var(--space-4);">
           <div class="row row-between">
             <span class="mono" id="progress-label">0%</span>
             <span class="mono" id="progress-bytes"></span>
@@ -64,9 +90,10 @@
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
-    import { uploadVideo, getMe, ApiError } from './js/api.js';
+    import { uploadVideo, getMe, getMySettings, ApiError } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
+    import { mountSlider } from './js/slider.js';
 
     if (!requireAuth()) throw new Error('redirigiendo');
 
@@ -81,18 +108,101 @@
     const progressBar = document.getElementById('progress-bar');
     const progressLabel = document.getElementById('progress-label');
     const progressBytes = document.getElementById('progress-bytes');
+    const slidersSlot = document.getElementById('sliders-slot');
+    const summaryStatus = document.getElementById('summary-status');
+    const summaryStatusLabel = document.getElementById('summary-status-label');
+    const btnReset = document.getElementById('btn-reset-defaults');
 
     document.getElementById('btn-logout').addEventListener('click', logout);
-
-    function showAlert(kind, msg) {
-      alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
-    }
-    function clearAlert() { alertSlot.innerHTML = ''; }
 
     function fmtBytes(b) {
       if (b < 1024) return `${b} B`;
       if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
       return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    // Defaults del usuario, cargados al inicio. `currentValues` es el
+    // estado actual de los 3 sliders.
+    const FIELDS = ['chain_window_seconds', 'clip_margin_seconds', 'clip_duration_seconds'];
+    const RANGES = {
+      chain_window_seconds:  { min: 1, max: 60, step: 0.5 },
+      clip_margin_seconds:   { min: 0, max: 10, step: 0.5 },
+      clip_duration_seconds: { min: 1, max: 60, step: 0.5 },
+    };
+    const LABELS = {
+      chain_window_seconds:  'Ventana de encadenamiento',
+      clip_margin_seconds:   'Margen del clip',
+      clip_duration_seconds: 'Duración base del clip',
+    };
+    const HINTS = {
+      chain_window_seconds:  'Tiempo máximo entre kills para agruparlas en un mismo clip.',
+      clip_margin_seconds:   'Segundos extra al inicio y al final de cada clip.',
+      clip_duration_seconds: 'Duración mínima del clip generado.',
+    };
+    const userDefaults = { chain_window_seconds: 6, clip_margin_seconds: 2, clip_duration_seconds: 6 };
+    const currentValues = { ...userDefaults };
+    const sliders = {};
+
+    function fmtSeconds(v) { return `${Number(v).toFixed(1)} s`; }
+
+    function buildSliders() {
+      slidersSlot.innerHTML = '';
+      for (const f of FIELDS) {
+        const r = RANGES[f];
+        const s = mountSlider({
+          label: LABELS[f],
+          hint: HINTS[f],
+          min: r.min, max: r.max, step: r.step,
+          value: currentValues[f],
+          format: fmtSeconds,
+          onChange: (v) => { currentValues[f] = v; refreshStatus(); },
+        });
+        slidersSlot.appendChild(s.element);
+        sliders[f] = s;
+      }
+    }
+
+    function refreshStatus() {
+      const matchesDefault = FIELDS.every(f => Math.abs(currentValues[f] - userDefaults[f]) < 1e-6);
+      summaryStatus.dataset.state = matchesDefault ? 'default' : 'custom';
+      // Cambiamos icono y texto.
+      const iconHtml = matchesDefault
+        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>';
+      summaryStatus.innerHTML = `${iconHtml}<span></span>`;
+      summaryStatus.querySelector('span').textContent = matchesDefault
+        ? 'Usando tus valores predeterminados'
+        : 'Personalizado para este vídeo';
+    }
+
+    function applyValues(values) {
+      for (const f of FIELDS) {
+        currentValues[f] = values[f];
+        if (sliders[f]) sliders[f].setValue(values[f]);
+      }
+      refreshStatus();
+    }
+
+    btnReset.addEventListener('click', () => {
+      applyValues(userDefaults);
+      showToast('Restablecido a tus valores por defecto', 'info', 2500);
+    });
+
+    function buildOverrides() {
+      // Solo enviamos como override los campos que difieren del default
+      // del usuario; los iguales se quedan en `null` para que el backend
+      // los herede del User (asi un cambio futuro en /account.html los
+      // arrastra). Si el usuario no abrio la seccion avanzada,
+      // currentValues == userDefaults y este objeto queda con 3 nulls.
+      const overrides = {};
+      let any = false;
+      for (const f of FIELDS) {
+        if (Math.abs(currentValues[f] - userDefaults[f]) > 1e-6) {
+          overrides[f] = currentValues[f];
+          any = true;
+        }
+      }
+      return any ? overrides : null;
     }
 
     (async () => {
@@ -103,23 +213,38 @@
         if (err instanceof ApiError && err.status === 401) return;
         userPill.textContent = '—';
       }
+      try {
+        const s = await getMySettings();
+        for (const f of FIELDS) {
+          userDefaults[f] = s[f];
+          currentValues[f] = s[f];
+        }
+      } catch (_) {
+        // Si falla cargar settings, dejamos los hardcoded (6/2/6) y
+        // notificamos al usuario para que sepa que esta editando ciegas.
+        showToast('No se pudo cargar tu configuración. Usando valores por defecto del sistema.', 'warning', 4000);
+      }
+      buildSliders();
+      refreshStatus();
     })();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      clearAlert();
       const file = fileInput.files[0];
       if (!file) {
-        showAlert('error', 'Selecciona un archivo de vídeo.');
+        showToast('Selecciona un archivo de vídeo.', 'error');
         return;
       }
 
-      btn.disabled = true; document.getElementById('btn-upload-label').textContent = 'Subiendo…';
+      btn.dataset.loading = 'true';
+      document.getElementById('btn-upload-label').textContent = 'Subiendo…';
       fileInput.disabled = true;
       progressBlock.classList.remove('hidden');
       progressBar.style.width = '0%';
       progressLabel.textContent = '0%';
       progressBytes.textContent = `0 / ${fmtBytes(file.size)}`;
+
+      const overrides = buildOverrides();
 
       try {
         const video = await uploadVideo(file, (frac) => {
@@ -127,19 +252,22 @@
           progressBar.style.width = pct + '%';
           progressLabel.textContent = pct + '%';
           progressBytes.textContent = `${fmtBytes(Math.round(frac * file.size))} / ${fmtBytes(file.size)}`;
-        });
-        // Persistimos el toast en sessionStorage para que aparezca en
-        // video.html tras el redirect (showToast aqui se perderia).
-        sessionStorage.setItem('toast.upload.success', 'Vídeo subido, procesando…');
+        }, overrides);
+        const msg = overrides
+          ? 'Vídeo subido con configuración personalizada, procesando…'
+          : 'Vídeo subido, procesando…';
+        sessionStorage.setItem('toast.upload.success', msg);
         location.replace(`video.html?id=${video.id}`);
       } catch (err) {
         let msg = err.detail || 'No se pudo subir el vídeo.';
         if (err instanceof ApiError) {
           if (err.status === 413) msg = 'El archivo supera el tamaño máximo permitido.';
           else if (err.status === 400) msg = err.detail || 'El archivo no es válido.';
+          else if (err.status === 422) msg = 'Algún parámetro de la configuración avanzada está fuera de rango.';
         }
         showToast(msg, 'error', 5000);
-        btn.disabled = false; document.getElementById('btn-upload-label').textContent = 'Subir y procesar';
+        btn.dataset.loading = 'false';
+        document.getElementById('btn-upload-label').textContent = 'Subir y procesar';
         fileInput.disabled = false;
       }
     });
