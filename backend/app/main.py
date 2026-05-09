@@ -13,6 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api import auth as auth_router
 from app.api import clips as clips_router
 from app.api import oauth as oauth_router
+from app.api import stats as stats_router
 from app.api import users as users_router
 from app.api import videos as videos_router
 from app.core.config import get_settings
@@ -75,6 +76,7 @@ app.include_router(oauth_router.router, prefix="/api")
 app.include_router(users_router.router, prefix="/api")
 app.include_router(videos_router.router, prefix="/api")
 app.include_router(clips_router.router, prefix="/api")
+app.include_router(stats_router.router, prefix="/api")
 
 
 @app.get("/health")
