@@ -832,6 +832,27 @@ input[type="file"] {
   margin-top: 4px;
 }
 
+/* ============ Transicion processing -> done en video.html (F9.5) ============
+ * Estados:
+ * - .stage-fade: estado base (visible, idle).
+ * - .stage-fade-out: opacity 0 con transicion de 300ms.
+ * - .stage-fade-in: arranca con opacity 0 + translateY -8px y se anima
+ *   a 1 + 0 con la misma duracion. Ver renderDone() en video.html. */
+.stage-fade {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.stage-fade.stage-fade-out { opacity: 0; }
+.stage-fade.stage-fade-in-init {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.stage-fade.stage-fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ============ Status badges (videos) ============ */
 
 .status {

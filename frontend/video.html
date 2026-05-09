@@ -104,24 +104,31 @@
 
     let pollTimer = null;
     let loadedClipUrls = new Set();  // para revocar object URLs al recargar
+    let lastStatus = null;  // para detectar la transicion processing -> done
 
     function renderProcessing(video) {
       const since = video.uploaded_at ? `desde ${fmtDate(video.uploaded_at)}` : '';
+      // Solo redibujamos si el contenido aun no es de "processing".
+      // En polls sucesivos el HTML no cambia, evitamos re-render innecesario.
+      if (slot.dataset.stage === 'processing') return;
+      slot.dataset.stage = 'processing';
       slot.innerHTML = `
-        <h1>${escapeHtml(video.original_filename)}</h1>
-        <p class="mono">#${video.id} · subido ${since}</p>
-        <div class="processing-banner">
-          <span class="spinner"></span>
-          <div>
-            <strong>Procesando…</strong> ClipCatcher está analizando los frames y generando los clips.
-            Refrescamos automáticamente cada ${POLL_MS / 1000} s.
+        <div id="stage-processing" class="stage-fade">
+          <h1>${escapeHtml(video.original_filename)}</h1>
+          <p class="mono">#${video.id} · subido ${since}</p>
+          <div class="processing-banner">
+            <span class="spinner"></span>
+            <div>
+              <strong>Procesando…</strong> ClipCatcher está analizando los frames y generando los clips.
+              Refrescamos automáticamente cada ${POLL_MS / 1000} s.
+            </div>
           </div>
-        </div>
-        <p class="text-mute">Estado actual:
-          <span class="status status-${video.status} spin-loader">
-            <i data-lucide="${statusIcon(video.status)}"></i>${video.status}
-          </span>
-        </p>`;
+          <p class="text-mute">Estado actual:
+            <span class="status status-${video.status} spin-loader">
+              <i data-lucide="${statusIcon(video.status)}"></i>${video.status}
+            </span>
+          </p>
+        </div>`;
       renderIcons();
     }
 
@@ -141,24 +148,37 @@
       renderIcons();
     }
 
-    async function renderDone(video) {
+    async function renderDone(video, animate) {
       const clipsHtml = video.clips.length
         ? `<div class="card-grid" id="clips-grid"></div>`
         : `<div class="empty">
              <h3>El vídeo se procesó sin highlights detectados.</h3>
              <p>El detector visual no encontró kills en el killfeed. Prueba con otra grabación.</p>
            </div>`;
+      const initClass = animate ? 'stage-fade stage-fade-in-init' : 'stage-fade';
+      slot.dataset.stage = 'done';
       slot.innerHTML = `
-        <h1>${escapeHtml(video.original_filename)}</h1>
-        <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)} · procesado ${fmtDate(video.processed_at)}</p>
-        <div class="row" style="margin-bottom: 18px;">
-          <span class="status status-done">
-            <i data-lucide="check-circle"></i>done
-          </span>
-          <span class="text-mute">${video.clips.length} clip(s) generados</span>
-        </div>
-        ${clipsHtml}`;
+        <div id="stage-done" class="${initClass}">
+          <h1>${escapeHtml(video.original_filename)}</h1>
+          <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)} · procesado ${fmtDate(video.processed_at)}</p>
+          <div class="row" style="margin-bottom: 18px;">
+            <span class="status status-done">
+              <i data-lucide="check-circle"></i>done
+            </span>
+            <span class="text-mute">${video.clips.length} clip(s) generados</span>
+          </div>
+          ${clipsHtml}
+        </div>`;
       renderIcons();
+      if (animate) {
+        // Forzar reflow para que la transicion entre las dos clases
+        // (init -> in) tenga punto de partida y de llegada.
+        const stage = document.getElementById('stage-done');
+        // eslint-disable-next-line no-unused-expressions
+        stage.offsetHeight;
+        stage.classList.remove('stage-fade-in-init');
+        stage.classList.add('stage-fade-in');
+      }
 
       if (!video.clips.length) return;
 
@@ -223,9 +243,28 @@
         const video = await getVideo(videoId);
         clearAlert();
         document.title = `ClipCatcher · ${video.original_filename}`;
+        const wasProcessing = lastStatus === 'processing' || lastStatus === 'uploaded';
         if (video.status === 'done') {
           revokeLoadedUrls();
-          await renderDone(video);
+          if (wasProcessing) {
+            // Transicion suave: fade-out del bloque processing,
+            // luego fade-in del bloque done. ~300ms cada lado.
+            const old = document.getElementById('stage-processing');
+            if (old) {
+              old.classList.add('stage-fade-out');
+              await new Promise(r => setTimeout(r, 300));
+            }
+            await renderDone(video, /*animate=*/true);
+            const n = video.clips.length;
+            const msg = n === 0
+              ? 'Procesado completado, sin highlights detectados'
+              : `Procesado completado, ${n} clip${n === 1 ? '' : 's'} generado${n === 1 ? '' : 's'}`;
+            showToast(msg, 'success', 4000);
+          } else {
+            // Llegamos directamente a done (recarga de pagina). Sin
+            // animacion, queda como antes.
+            await renderDone(video, /*animate=*/false);
+          }
           if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
         } else if (video.status === 'failed') {
           renderFailed(video);
@@ -233,6 +272,7 @@
         } else {
           renderProcessing(video);
         }
+        lastStatus = video.status;
       } catch (err) {
         slot.innerHTML = '';
         if (err instanceof ApiError && err.status === 404) {
