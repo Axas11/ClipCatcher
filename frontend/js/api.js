@@ -86,6 +86,23 @@ export async function getMyStats() {
   return res.json();
 }
 
+/* F11: actualiza nombre y/o email del usuario actual. Solo se envian
+ * los campos definidos en `payload`. Devuelve UserOut. */
+export async function updateMyProfile(payload) {
+  const res = await _request('/users/me', { method: 'PATCH', json: payload });
+  return res.json();
+}
+
+/* F11: cambia la contraseña. 204 sin body en exito; 401 si current
+ * no coincide; 403 si la cuenta es Google; 422 si new_password < 8. */
+export async function changeMyPassword(currentPassword, newPassword) {
+  await _request('/users/me/password', {
+    method: 'PUT',
+    json: { current_password: currentPassword, new_password: newPassword },
+  });
+  return true;
+}
+
 export async function getMySettings() {
   const res = await _request('/users/me/settings');
   return res.json();

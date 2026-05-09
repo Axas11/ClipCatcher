@@ -857,6 +857,102 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   opacity: 0.85;
 }
 
+/* ============ Avatar de usuario y page header (F11.2) ============
+ * Cabecera de /account.html y de cualquier futura "mi perfil". El
+ * avatar es un circulo con iniciales sobre gradient. */
+
+.account-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gradient);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 28px -8px rgba(0, 224, 255, 0.45);
+}
+
+.account-header-text { flex: 1; min-width: 0; }
+.account-header-text h1 {
+  margin: 0 0 var(--space-1);
+  font-size: 28px;
+  line-height: 1.15;
+}
+.account-header-email {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-mute);
+  margin: 0 0 var(--space-2);
+  word-break: break-all;
+}
+
+.provider-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  border: 1px solid rgba(0, 224, 255, 0.40);
+  background: rgba(0, 224, 255, 0.06);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.provider-badge svg { width: 12px; height: 12px; }
+
+/* Cabecera de cada card en /account.html: titulo + subtitulo. */
+.section-head {
+  margin-bottom: var(--space-4);
+}
+.section-head h2 {
+  font-size: 19px;
+  margin: 0 0 var(--space-1);
+}
+.section-head .section-sub {
+  font-size: 13px;
+  color: var(--text-mute);
+  margin: 0;
+  max-width: 560px;
+}
+
+/* Info box con tono cian, usado en la card de Seguridad para usuarios
+ * Google ("Tu cuenta usa Google para iniciar sesion..."). */
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgba(0, 224, 255, 0.30);
+  background: rgba(0, 224, 255, 0.05);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.info-box svg {
+  width: 18px; height: 18px;
+  color: var(--cyan);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.info-box p { margin: 0; }
+.info-box p strong { color: var(--cyan); font-weight: 500; }
+
 /* ============ Botones ============ */
 
 .btn {
