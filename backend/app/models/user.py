@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, Float, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -22,6 +22,13 @@ class User(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
+
+    # Configuracion del detector por usuario (F6X). Se inicializan a los
+    # mismos valores que `backend/detector/config.json` para que un usuario
+    # recien registrado tenga el mismo comportamiento que el MVP.
+    chain_window_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=6.0)
+    clip_margin_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=2.0)
+    clip_duration_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=6.0)
 
     videos: Mapped[list["Video"]] = relationship(  # type: ignore[name-defined]
         back_populates="owner",
