@@ -12,6 +12,7 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
+    Response,
     UploadFile,
     status,
 )
@@ -137,13 +138,12 @@ def list_videos(
     )
 
 
-@router.get("/{video_id}", response_model=VideoDetail)
-def get_video(
-    video_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> Video:
-    """Devuelve un video con sus clips. 404 si no existe o no es del usuario."""
+def _get_owned_video(video_id: int, db: Session, current_user: User) -> Video:
+    """Recupera un video propiedad del usuario actual o lanza 404 unificado.
+
+    Mismo `detail` para "no existe" y "no es del usuario" para evitar
+    information disclosure por analisis diferencial de respuestas.
+    """
     video = db.get(Video, video_id)
     if video is None or video.user_id != current_user.id:
         raise HTTPException(
@@ -151,3 +151,72 @@ def get_video(
             detail="video no encontrado",
         )
     return video
+
+
+@router.get("/{video_id}", response_model=VideoDetail)
+def get_video(
+    video_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Video:
+    """Devuelve un video con sus clips. 404 si no existe o no es del usuario."""
+    return _get_owned_video(video_id, db, current_user)
+
+
+@router.delete(
+    "/{video_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,  # 204 no admite body; evita JSONResponse default.
+)
+def delete_video(
+    video_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """Borra un video del usuario, sus clips y los archivos en disco.
+
+    Orden:
+    1. Comprobar propiedad (404 unificado si no es del usuario o no existe).
+    2. Para cada clip: borrar el archivo en disco si existe (FileNotFound
+       no aborta la operacion: queremos limpiar todo lo limpiable).
+    3. Borrar el archivo del video original en disco.
+    4. Commit del DELETE en BD: el cascade de la relacion `Video.clips`
+       (`cascade="all, delete-orphan"`) elimina los rows de `clips`. La
+       FK con `ondelete="CASCADE"` lo respaldaria a nivel BD pero el
+       ORM ya lo gestiona.
+
+    Devuelve 204 No Content. Si algo falla limpiando ficheros se loggea
+    como warning pero no se devuelve error 5xx: la BD ya quedo consistente.
+    """
+    video = _get_owned_video(video_id, db, current_user)
+
+    clip_paths = [Path(c.file_path) for c in video.clips]
+    video_path = Path(video.stored_path)
+
+    db.delete(video)
+    db.commit()
+
+    for path in clip_paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            logger.warning(
+                "delete_video: no se pudo borrar clip %s: %s", path, exc
+            )
+
+    try:
+        video_path.unlink(missing_ok=True)
+    except OSError as exc:
+        logger.warning(
+            "delete_video: no se pudo borrar fichero del video %s: %s",
+            video_path,
+            exc,
+        )
+
+    logger.info(
+        "delete_video: usuario=%d video_id=%d clips_borrados=%d",
+        current_user.id,
+        video_id,
+        len(clip_paths),
+    )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
