@@ -81,6 +81,18 @@ export async function googleAuthAvailable() {
   return Boolean(body && body.available);
 }
 
+/* F12: agregados anonimos para la landing publica (sin auth). */
+export async function getGlobalStats() {
+  const res = await _request('/stats/global', { skipAuth: true });
+  return res.json();
+}
+
+/* F12.2: timeline de eventos recientes del usuario actual. */
+export async function getMyActivity() {
+  const res = await _request('/users/me/activity');
+  return res.json();
+}
+
 export async function getMyStats() {
   const res = await _request('/users/me/stats');
   return res.json();

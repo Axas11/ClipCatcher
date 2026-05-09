@@ -3,111 +3,282 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClipCatcher · Iniciar sesión</title>
+  <title>ClipCatcher · IA que detecta tus mejores momentos</title>
+  <meta name="description" content="ClipCatcher detecta automáticamente los highlights de tus partidas con una IA propia y genera clips listos para compartir.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.png">
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Open Graph (F12.4c) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="ClipCatcher · IA que detecta tus mejores momentos">
+  <meta property="og:description" content="Sube tu grabación, deja que la IA encuentre los highlights y comparte clips perfectos en segundos.">
+  <meta property="og:image" content="favicon.svg">
+  <meta name="twitter:card" content="summary">
 </head>
 <body>
-  <main class="hero-split">
-    <section class="hero-side">
-      <div class="hero-brand">
-        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
-          <path d="m6.2 5.3 3.1 3.9"/>
-          <path d="m12.4 3.4 3.1 4"/>
-          <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
-        </svg>
-        <span class="brand-text">ClipCatcher</span>
-      </div>
-      <h1 class="hero-tagline">IA que detecta tus mejores momentos</h1>
-      <p class="hero-subtitle">Sube tu grabación, deja que ClipCatcher analice cada frame, y obtén tus highlights listos para compartir.</p>
-      <ul class="hero-features">
-        <li><i data-lucide="zap"></i><span>Detección automática con CNN entrenada propia</span></li>
-        <li><i data-lucide="clock"></i><span>Procesamiento en segundos, no horas</span></li>
-        <li><i data-lucide="download"></i><span>Clips listos para publicar</span></li>
-      </ul>
-      <span class="hero-footnote">TFG · 2º DAW · Curso 2025-2026</span>
-    </section>
-
-    <section class="card hero-form">
-      <div class="tabs">
-        <button class="tab active" data-tab="login" type="button">Iniciar sesión</button>
-        <button class="tab" data-tab="register" type="button">Crear cuenta</button>
-      </div>
-
-      <div id="alert-slot"></div>
-
-      <form id="form-login" autocomplete="on">
-        <div class="field">
-          <label class="field-label" for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
-        </div>
-        <div class="field">
-          <label class="field-label" for="login-password">Contraseña</label>
-          <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="········">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block" id="btn-login">Entrar</button>
-      </form>
-
-      <div id="google-block" class="hidden">
-        <div class="auth-divider">o</div>
-        <a id="btn-google" class="btn-google" href="/api/auth/google/login">
-          <svg viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
-            <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
-            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
-            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C42 36.5 44 30.7 44 24c0-1.3-.1-2.3-.4-3.5z"/>
+  <div class="landing-shell">
+    <!-- ========== Navbar fijo ========== -->
+    <nav class="landing-nav" id="landing-nav" aria-label="Navegación principal">
+      <div class="landing-nav-inner">
+        <a class="brand" href="#top">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
+            <path d="m6.2 5.3 3.1 3.9"/>
+            <path d="m12.4 3.4 3.1 4"/>
+            <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
           </svg>
-          <span>Continuar con Google</span>
+          <span class="brand-text">ClipCatcher</span>
         </a>
+        <div class="nav-actions">
+          <a class="btn btn-ghost" href="#empezar">Iniciar sesión</a>
+          <a class="btn btn-primary" href="#empezar">Empezar gratis</a>
+        </div>
       </div>
+    </nav>
 
-      <form id="form-register" class="hidden" autocomplete="on">
-        <div class="field">
-          <label class="field-label" for="reg-name">Nombre</label>
-          <input id="reg-name" name="name" type="text" required minlength="1" maxlength="120" autocomplete="name" placeholder="Tu nombre">
+    <span id="top"></span>
+
+    <!-- ========== Hero ========== -->
+    <section class="hero">
+      <div class="section-container">
+        <div class="hero-content">
+          <span class="hero-eyebrow">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Highlights automáticos con IA</span>
+          </span>
+          <h1 class="hero-title">
+            Detecta tus <span class="highlight">mejores momentos</span> automáticamente
+          </h1>
+          <p class="hero-subtitle">
+            Sube tu grabación, deja que la IA encuentre los highlights, y comparte clips perfectos en segundos.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#empezar">
+              <i data-lucide="rocket"></i>
+              <span>Empezar gratis</span>
+            </a>
+            <a class="btn btn-secondary" href="#como-funciona">
+              <i data-lucide="play"></i>
+              <span>Ver cómo funciona</span>
+            </a>
+          </div>
+          <p class="hero-footnote">TFG · 2º DAW · Curso 2025-2026</p>
         </div>
-        <div class="field">
-          <label class="field-label" for="reg-email">Email</label>
-          <input id="reg-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
-        </div>
-        <div class="field">
-          <label class="field-label" for="reg-password">Contraseña <span class="text-mute" style="text-transform: none; letter-spacing: 0;">(mínimo 8 caracteres)</span></label>
-          <input id="reg-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="········">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block" id="btn-register">Crear cuenta</button>
-      </form>
+      </div>
     </section>
-  </main>
+
+    <!-- ========== Cómo funciona ========== -->
+    <section class="section" id="como-funciona">
+      <div class="section-container">
+        <div class="section-heading">
+          <h2>Cómo funciona</h2>
+          <p class="section-sub">Tres pasos. Sin instalar nada. Sin esperas.</p>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card reveal-on-scroll">
+            <div class="step-number">01</div>
+            <span class="step-icon"><i data-lucide="upload-cloud"></i></span>
+            <h3>Sube tu vídeo</h3>
+            <p>Arrastra tu grabación de Valorant. Soportamos MP4, MKV, MOV y AVI hasta 10 GB.</p>
+          </article>
+          <article class="step-card reveal-on-scroll">
+            <div class="step-number">02</div>
+            <span class="step-icon"><i data-lucide="cpu"></i></span>
+            <h3>La IA detecta</h3>
+            <p>Nuestra red neuronal analiza el killfeed frame a frame y agrupa los kills encadenados en highlights.</p>
+          </article>
+          <article class="step-card reveal-on-scroll">
+            <div class="step-number">03</div>
+            <span class="step-icon"><i data-lucide="download"></i></span>
+            <h3>Descarga clips</h3>
+            <p>Recibirás clips MP4 listos para subir a TikTok, Instagram o YouTube. Sin recompresión innecesaria.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Características ========== -->
+    <section class="section" id="caracteristicas">
+      <div class="section-container">
+        <div class="section-heading">
+          <h2>Diseñado para creadores</h2>
+          <p class="section-sub">Cada decisión está pensada para que el flujo sea rápido, privado y predecible.</p>
+        </div>
+        <div class="features-grid">
+          <article class="feature-card reveal-on-scroll">
+            <span class="feature-icon"><i data-lucide="brain-circuit"></i></span>
+            <h3>Detección con IA propia</h3>
+            <p>CNN ResNet18 entrenada con un dataset propio del killfeed de Valorant. Sin OCR genérico.</p>
+          </article>
+          <article class="feature-card reveal-on-scroll">
+            <span class="feature-icon"><i data-lucide="sliders-horizontal"></i></span>
+            <h3>Configuración personalizable</h3>
+            <p>Ajusta la sensibilidad, el margen y la duración. Por usuario o por vídeo individual.</p>
+          </article>
+          <article class="feature-card reveal-on-scroll">
+            <span class="feature-icon"><i data-lucide="globe"></i></span>
+            <h3>Inicio de sesión con Google</h3>
+            <p>Acceso rápido sin gestionar contraseñas. O regístrate con email si prefieres.</p>
+          </article>
+          <article class="feature-card reveal-on-scroll">
+            <span class="feature-icon"><i data-lucide="zap"></i></span>
+            <h3>Procesamiento en segundos</h3>
+            <p>Aproximadamente 7 segundos de cómputo por cada clip de 30s. Sin esperar minutos a la cola.</p>
+          </article>
+          <article class="feature-card reveal-on-scroll">
+            <span class="feature-icon"><i data-lucide="shield-check"></i></span>
+            <h3>Privacidad por defecto</h3>
+            <p>Cada usuario solo accede a sus vídeos y clips. Aislamiento verificado en todos los endpoints.</p>
+          </article>
+          <article class="feature-card reveal-on-scroll">
+            <span class="feature-icon"><i data-lucide="film"></i></span>
+            <h3>Multi-formato</h3>
+            <p>Acepta MP4, MKV, MOV y AVI. Procesa en streaming sin cargar el archivo entero en memoria.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Stats banner ========== -->
+    <section class="section stats-banner" id="stats">
+      <div class="section-container">
+        <div class="stats-grid">
+          <div class="stat-counter reveal-on-scroll">
+            <span class="stat-number" data-counter data-target="0" data-fallback="100+">0</span>
+            <span class="stat-label">Vídeos procesados</span>
+          </div>
+          <div class="stat-counter reveal-on-scroll">
+            <span class="stat-number" data-counter data-target="0" data-fallback="350+">0</span>
+            <span class="stat-label">Clips generados</span>
+          </div>
+          <div class="stat-counter reveal-on-scroll">
+            <span class="stat-number" data-counter data-target="0" data-suffix=" s" data-fallback="8.5 s">0 s</span>
+            <span class="stat-label">Tiempo medio</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Empezar (form login/registro) ========== -->
+    <section class="section" id="empezar">
+      <div class="section-container">
+        <div class="section-heading">
+          <h2>Empezar es <span style="background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">gratis</span> y rápido</h2>
+          <p class="section-sub">Crea tu cuenta o entra con Google y sube tu primer vídeo en menos de un minuto.</p>
+        </div>
+
+        <section class="card empezar-card">
+          <div class="tabs">
+            <button class="tab active" data-tab="login" type="button">Iniciar sesión</button>
+            <button class="tab" data-tab="register" type="button">Crear cuenta</button>
+          </div>
+
+          <div id="alert-slot"></div>
+
+          <form id="form-login" autocomplete="on">
+            <div class="field">
+              <label class="field-label" for="login-email">Email</label>
+              <input id="login-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
+            </div>
+            <div class="field">
+              <label class="field-label" for="login-password">Contraseña</label>
+              <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="········">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-login">Entrar</button>
+          </form>
+
+          <div id="google-block" class="hidden">
+            <div class="auth-divider">o</div>
+            <a id="btn-google" class="btn-google" href="/api/auth/google/login">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
+                <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C42 36.5 44 30.7 44 24c0-1.3-.1-2.3-.4-3.5z"/>
+              </svg>
+              <span>Continuar con Google</span>
+            </a>
+          </div>
+
+          <form id="form-register" class="hidden" autocomplete="on">
+            <div class="field">
+              <label class="field-label" for="reg-name">Nombre</label>
+              <input id="reg-name" name="name" type="text" required minlength="1" maxlength="120" autocomplete="name" placeholder="Tu nombre">
+            </div>
+            <div class="field">
+              <label class="field-label" for="reg-email">Email</label>
+              <input id="reg-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
+            </div>
+            <div class="field">
+              <label class="field-label" for="reg-password">Contraseña <span class="text-mute" style="text-transform: none; letter-spacing: 0;">(mínimo 8 caracteres)</span></label>
+              <input id="reg-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="········">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-register">Crear cuenta</button>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <!-- ========== Footer ========== -->
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <div class="footer-brand">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
+            <path d="m6.2 5.3 3.1 3.9"/>
+            <path d="m12.4 3.4 3.1 4"/>
+            <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+          </svg>
+          <div>
+            <span class="brand-text">ClipCatcher</span>
+            <span class="footer-tagline">IA · Highlights · Valorant</span>
+          </div>
+        </div>
+        <nav class="footer-links" aria-label="Enlaces de pie de página">
+          <a href="https://github.com/Axas11/ClipCatcher" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/Axas11/ClipCatcher/blob/main/docs/arquitectura.md" target="_blank" rel="noopener">Arquitectura</a>
+          <a href="https://github.com/Axas11/ClipCatcher/blob/main/docs/trabajo_futuro.md" target="_blank" rel="noopener">Trabajo futuro</a>
+        </nav>
+        <p class="footer-meta">
+          TFG 2º DAW · Curso 2025-2026<br>
+          Francisco José Rodríguez Guerra
+        </p>
+      </div>
+    </footer>
+  </div>
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
-    import { login, register, googleAuthAvailable, ApiError } from './js/api.js';
+    import { login, register, googleAuthAvailable, getGlobalStats, ApiError } from './js/api.js';
     import { saveToken, getToken } from './js/auth.js';
     import { showToast } from './js/toast.js';
+    import { initRevealOnScroll, animateCounter, easeOutQuart } from './js/animations.js';
 
     const googleBlock = document.getElementById('google-block');
     const alertSlot = document.getElementById('alert-slot');
+    const nav = document.getElementById('landing-nav');
+
+    // F12.1: navbar con backdrop-blur al hacer scroll.
+    function refreshNavScrolled() {
+      nav.classList.toggle('scrolled', window.scrollY > 8);
+    }
+    window.addEventListener('scroll', refreshNavScrolled, { passive: true });
+    refreshNavScrolled();
 
     function showAlert(kind, msg) {
       alertSlot.innerHTML = `<div class="alert alert-${kind}">${msg}</div>`;
     }
     function clearAlert() { alertSlot.innerHTML = ''; }
 
-    // F8: callback de Google. Si volvemos del backend con ?token=... lo
-    // guardamos y vamos al dashboard. Si hay ?error=... lo mostramos.
-    // Esto va ANTES del check de token existente para que un usuario que
-    // ya tenia sesion pueda re-autenticarse con Google sin quedar atrapado.
+    // ============ OAuth callback (F8.4) ============
     const params = new URLSearchParams(location.search);
     const tokenFromOAuth = params.get('token');
     const oauthError = params.get('error');
     const oauthLogin = params.get('login');
     if (tokenFromOAuth) {
       saveToken(tokenFromOAuth);
-      // Limpiamos la URL antes de redirigir para no dejar el JWT visible.
       history.replaceState({}, '', location.pathname);
-      // Persistimos un flag para que el dashboard muestre el toast tras el
-      // redirect (showToast aqui se perderia con location.replace).
       if (oauthLogin === 'google') {
         sessionStorage.setItem('toast.oauth.success', 'Sesion iniciada con Google');
       }
@@ -124,19 +295,18 @@
 
     if (window.lucide) window.lucide.createIcons();
 
+    // ============ Tabs login/registro ============
     const tabs = document.querySelectorAll('.tab');
     const formLogin = document.getElementById('form-login');
     const formRegister = document.getElementById('form-register');
 
-    // Mostrar el bloque Google solo si el backend lo tiene configurado.
-    // El boton vive bajo el form de login: lo ocultamos al cambiar a registro.
     let googleAvailable = false;
     googleAuthAvailable()
       .then(ok => {
         googleAvailable = ok;
         if (ok) googleBlock.classList.remove('hidden');
       })
-      .catch(() => { /* silencioso: si /available falla, dejamos el boton oculto */ });
+      .catch(() => { /* silencio */ });
 
     tabs.forEach(btn => btn.addEventListener('click', () => {
       tabs.forEach(b => b.classList.toggle('active', b === btn));
@@ -151,7 +321,7 @@
       e.preventDefault();
       clearAlert();
       const btn = document.getElementById('btn-login');
-      btn.disabled = true; btn.textContent = 'Entrando…';
+      btn.dataset.loading = 'true'; btn.textContent = 'Entrando…';
       try {
         const data = await login({
           email: formLogin.email.value.trim(),
@@ -161,10 +331,10 @@
         location.replace('dashboard.html');
       } catch (err) {
         const msg = err instanceof ApiError && err.status === 401
-          ? 'Credenciales inválidas.'
+          ? (err.detail && err.detail.includes('Google') ? err.detail : 'Credenciales inválidas.')
           : (err.detail || 'No se pudo iniciar sesión.');
         showAlert('error', msg);
-        btn.disabled = false; btn.textContent = 'Entrar';
+        btn.dataset.loading = 'false'; btn.textContent = 'Entrar';
       }
     });
 
@@ -172,7 +342,7 @@
       e.preventDefault();
       clearAlert();
       const btn = document.getElementById('btn-register');
-      btn.disabled = true; btn.textContent = 'Creando cuenta…';
+      btn.dataset.loading = 'true'; btn.textContent = 'Creando cuenta…';
       try {
         const data = await register({
           name: formRegister.name.value.trim(),
@@ -189,9 +359,62 @@
           msg = 'Revisa los datos: email válido y contraseña de al menos 8 caracteres.';
         }
         showAlert('error', msg);
-        btn.disabled = false; btn.textContent = 'Crear cuenta';
+        btn.dataset.loading = 'false'; btn.textContent = 'Crear cuenta';
       }
     });
+
+    // ============ Reveal on scroll + counters animados ============
+    initRevealOnScroll();
+
+    // Cargar stats globales y animarlos al entrar en viewport.
+    (async () => {
+      let stats = null;
+      try {
+        stats = await getGlobalStats();
+      } catch (_) { /* sin red, dejamos placeholders */ }
+
+      const counters = document.querySelectorAll('[data-counter]');
+      const targets = stats && stats.videos_count > 0
+        ? {
+            videos: stats.videos_count,
+            clips: stats.clips_count,
+            avg: stats.avg_processing_seconds || 0,
+          }
+        : null;
+
+      counters.forEach((el, idx) => {
+        if (targets) {
+          // Hay datos reales: animar de 0 al valor.
+          const value = idx === 0 ? targets.videos : (idx === 1 ? targets.clips : targets.avg);
+          el.dataset.target = String(value);
+        } else {
+          // Sin datos: el fallback estatico ("100+", etc.) sustituye el counter.
+          el.textContent = el.dataset.fallback || el.textContent;
+          el.dataset.skip = 'true';
+        }
+      });
+
+      // Trigger animateCounter cuando los .stat-counter entran en viewport.
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const counter = entry.target.querySelector('[data-counter]');
+          if (!counter || counter.dataset.skip === 'true' || counter.dataset.animated === 'true') {
+            obs.unobserve(entry.target);
+            return;
+          }
+          counter.dataset.animated = 'true';
+          const target = parseFloat(counter.dataset.target || '0');
+          const suffix = counter.dataset.suffix || '';
+          const isFloat = suffix === ' s';
+          animateCounter(counter, target, 1500, easeOutQuart, (v) => {
+            return (isFloat ? v.toFixed(1) : Math.round(v).toString()) + suffix;
+          });
+          obs.unobserve(entry.target);
+        });
+      }, { threshold: 0.4 });
+      document.querySelectorAll('.stat-counter').forEach(c => obs.observe(c));
+    })();
   </script>
 </body>
 </html>
