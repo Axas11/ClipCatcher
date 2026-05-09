@@ -72,6 +72,15 @@ export async function getMe() {
   return res.json();
 }
 
+/* F8: indica si el backend tiene credenciales de Google OAuth
+ * configuradas. El frontend usa esto para decidir si pintar el boton
+ * "Continuar con Google" o no (degradacion elegante). */
+export async function googleAuthAvailable() {
+  const res = await _request('/auth/google/available', { skipAuth: true });
+  const body = await res.json();
+  return Boolean(body && body.available);
+}
+
 export async function getMySettings() {
   const res = await _request('/users/me/settings');
   return res.json();
