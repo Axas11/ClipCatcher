@@ -38,8 +38,27 @@
 
       <form id="form-upload">
         <div class="field">
-          <label class="field-label" for="file">Archivo de vídeo (.mp4, .mkv, .mov, …)</label>
-          <input id="file" name="file" type="file" accept="video/*" required>
+          <label class="field-label" for="video-input">Archivo de vídeo</label>
+          <div class="file-drop-zone" id="file-drop-zone">
+            <input type="file" id="video-input" name="file"
+                   accept=".mp4,.mkv,.mov,.avi,video/*"
+                   class="file-input-hidden" required>
+            <div class="file-drop-empty" id="file-drop-empty">
+              <i data-lucide="upload-cloud" class="file-drop-icon"></i>
+              <p class="file-drop-primary">Selecciona un vídeo o arrástralo aquí</p>
+              <p class="file-drop-secondary">.mp4 · .mkv · .mov · .avi · hasta 10 GB</p>
+            </div>
+            <div class="file-drop-selected" id="file-drop-selected" hidden>
+              <i data-lucide="file-video" class="file-drop-icon-selected"></i>
+              <div class="file-drop-info">
+                <p class="file-drop-name" id="file-drop-name"></p>
+                <p class="file-drop-size" id="file-drop-size"></p>
+              </div>
+              <button type="button" class="file-drop-clear" id="file-drop-clear" aria-label="Quitar archivo">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <details class="disclosure" id="advanced-block">
@@ -102,7 +121,7 @@
 
     const userPill = document.getElementById('user-pill');
     const form = document.getElementById('form-upload');
-    const fileInput = document.getElementById('file');
+    const fileInput = document.getElementById('video-input');
     const btn = document.getElementById('btn-upload');
     const alertSlot = document.getElementById('alert-slot');
     const progressBlock = document.getElementById('progress-block');
@@ -114,13 +133,105 @@
     const summaryStatusLabel = document.getElementById('summary-status-label');
     const btnReset = document.getElementById('btn-reset-defaults');
 
+    // Drop zone customizado (F10-fix #3).
+    const dropZone = document.getElementById('file-drop-zone');
+    const dropEmpty = document.getElementById('file-drop-empty');
+    const dropSelected = document.getElementById('file-drop-selected');
+    const dropName = document.getElementById('file-drop-name');
+    const dropSize = document.getElementById('file-drop-size');
+    const dropClear = document.getElementById('file-drop-clear');
+
     document.getElementById('btn-logout').addEventListener('click', logout);
 
     function fmtBytes(b) {
       if (b < 1024) return `${b} B`;
       if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-      return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+      if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+      return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
     }
+
+    function showSelectedFile(file) {
+      dropName.textContent = file.name;
+      dropSize.textContent = fmtBytes(file.size);
+      dropEmpty.hidden = true;
+      dropSelected.hidden = false;
+      dropZone.classList.add('has-file');
+    }
+    function clearSelectedFile() {
+      try {
+        // Limpieza segura del input file via DataTransfer vacio.
+        const dt = new DataTransfer();
+        fileInput.files = dt.files;
+      } catch (_) {
+        fileInput.value = '';
+      }
+      dropEmpty.hidden = false;
+      dropSelected.hidden = true;
+      dropZone.classList.remove('has-file');
+    }
+
+    // Click en la zona delega al input nativo (excepto si se hizo en X).
+    dropZone.addEventListener('click', (e) => {
+      if (dropClear.contains(e.target)) return;
+      if (dropSelected.contains(e.target) && !dropClear.contains(e.target)) return;
+      // Si ya hay archivo seleccionado y el click cae sobre la zona, no
+      // re-abrir el picker (evita reemplazos accidentales).
+      if (dropZone.classList.contains('has-file')) return;
+      fileInput.click();
+    });
+
+    // Cambios desde el picker nativo.
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (f) showSelectedFile(f);
+    });
+
+    // Drag & drop. preventDefault necesario en dragover para que el
+    // browser permita drop. Usamos un counter para gestionar dragenter/
+    // dragleave correctamente con hijos anidados (eventos burbujean).
+    let dragDepth = 0;
+    dropZone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragDepth += 1;
+      dropZone.classList.add('dragging');
+    });
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      // Indicar al browser que aceptamos copia.
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    });
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragDepth -= 1;
+      if (dragDepth <= 0) {
+        dragDepth = 0;
+        dropZone.classList.remove('dragging');
+      }
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragDepth = 0;
+      dropZone.classList.remove('dragging');
+      const files = e.dataTransfer && e.dataTransfer.files;
+      if (!files || files.length === 0) return;
+      // Asignamos al input nativo via DataTransfer para que el form
+      // submit lo recoja sin trucos extra.
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        fileInput.files = dt.files;
+      } catch (_) {
+        // Fallback navegadores antiguos: no podemos reasignar files
+        // directamente; mantenemos el handle solo en memoria.
+      }
+      showSelectedFile(files[0]);
+    });
+
+    dropClear.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearSelectedFile();
+    });
 
     // Defaults del usuario, cargados al inicio. `currentValues` es el
     // estado actual de los 3 sliders.
