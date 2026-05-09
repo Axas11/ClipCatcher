@@ -37,6 +37,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> RegisterResp
         email=payload.email,
         hashed_password=hash_password(payload.password),
         name=payload.name,
+        auth_provider="email",
     )
     db.add(user)
     db.commit()
@@ -52,7 +53,22 @@ def login(
 ) -> Token:
     """Autentica por email + password (OAuth2 password flow) y devuelve JWT."""
     user = db.query(User).filter(User.email == form.username).first()
-    if user is None or not verify_password(form.password, user.hashed_password):
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales invalidas",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    # Cuenta creada via Google OAuth: no tiene password local. Mensaje
+    # especifico para que el frontend pueda guiar al usuario al boton de
+    # Google en lugar de dejar que pruebe contrasenas a ciegas.
+    if user.auth_provider != "email" or user.hashed_password is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="esta cuenta usa Google para iniciar sesion",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not verify_password(form.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales invalidas",

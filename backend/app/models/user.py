@@ -15,12 +15,24 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    # NULLABLE desde F8: los usuarios que se registran via Google OAuth
+    # no tienen contrasena local. La logica de login email+password debe
+    # rechazar cualquier intento contra una cuenta sin hashed_password.
+    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
+    )
+
+    # Identidad multi-proveedor (F8). `auth_provider` indica como se creo la
+    # cuenta: "email" (registro local con password) o "google" (OAuth).
+    # `google_id` es el subject (`sub`) estable que devuelve Google y nos
+    # permite identificar al usuario aunque cambie de email.
+    auth_provider: Mapped[str] = mapped_column(String(20), nullable=False, default="email")
+    google_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True, index=True
     )
 
     # Configuracion del detector por usuario (F6X). Se inicializan a los
