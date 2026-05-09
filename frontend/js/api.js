@@ -198,7 +198,9 @@ export function uploadVideo(file, onProgress, overrides = null, convertTiktok = 
  * con clips pequenos (~12 MB) este tradeoff es aceptable.
  */
 export async function fetchClipBlobUrl(clipId, mode = 'stream') {
-  if (mode !== 'stream' && mode !== 'download') {
+  // Modos validos: stream (inline), download (16:9 con attachment),
+  // tiktok (variante 9:16 F13.2 con attachment).
+  if (mode !== 'stream' && mode !== 'download' && mode !== 'tiktok') {
     throw new Error(`mode invalido: ${mode}`);
   }
   const res = await _request(`/clips/${clipId}/${mode}`);

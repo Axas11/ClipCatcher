@@ -214,16 +214,30 @@
         try {
           const streamUrl = await fetchClipBlobUrl(c.id, 'stream');
           loadedClipUrls.add(streamUrl);
+          // F13.2.5: si el clip tiene variante TikTok (tiktok_path es
+          // truthy en el ClipOut, mascarado a "available" en el schema),
+          // mostramos dos botones: 16:9 (primary) y TikTok (secondary).
+          const hasTiktok = Boolean(c.tiktok_path);
+          const downloadLabel = hasTiktok ? 'Descargar (16:9)' : 'Descargar';
+          const tiktokButton = hasTiktok
+            ? `<button class="btn btn-secondary" data-download-tiktok="${c.id}" type="button">
+                 <i data-lucide="smartphone"></i> Descargar TikTok (9:16)
+               </button>`
+            : '';
           card.innerHTML = `
             <div class="clip-meta">clip #${c.id} · ${c.start_time.toFixed(1)}s → ${c.end_time.toFixed(1)}s · ${(c.end_time - c.start_time).toFixed(1)}s</div>
             <video controls preload="metadata" src="${streamUrl}"></video>
-            <div class="row row-end">
+            <div class="row row-end" style="gap: var(--space-2); flex-wrap: wrap;">
               <button class="btn" data-download="${c.id}" type="button">
-                <i data-lucide="download"></i> Descargar
+                <i data-lucide="download"></i> ${downloadLabel}
               </button>
+              ${tiktokButton}
             </div>`;
           renderIcons();
           card.querySelector('[data-download]').addEventListener('click', () => downloadClip(c.id));
+          if (hasTiktok) {
+            card.querySelector('[data-download-tiktok]').addEventListener('click', () => downloadClipTiktok(c.id));
+          }
         } catch (err) {
           card.innerHTML = `
             <div class="clip-meta">clip #${c.id}</div>
@@ -245,6 +259,21 @@
         setTimeout(() => URL.revokeObjectURL(url), 4000);
       } catch (err) {
         showAlert('error', `No se pudo descargar el clip: ${err.detail || err.message}`);
+      }
+    }
+
+    async function downloadClipTiktok(clipId) {
+      try {
+        const url = await fetchClipBlobUrl(clipId, 'tiktok');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `clip_${clipId}_tiktok.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      } catch (err) {
+        showAlert('error', `No se pudo descargar la versión TikTok: ${err.detail || err.message}`);
       }
     }
 
