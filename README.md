@@ -40,11 +40,14 @@ ClipCatcher/
 │   │   ├── services/        # processor (orquesta el detector)
 │   │   └── main.py          # punto de entrada FastAPI
 │   ├── detector/            # motor de visión por computador
-│   │   ├── analyzer.py      # analyze_video(path) -> list[(start, end)]
-│   │   ├── exporter.py      # export_clip(path, start, end, output)
-│   │   ├── config.json      # margen y duración de los clips
+│   │   ├── analyzer.py             # analyze_video(path) -> list[(start, end)]
+│   │   ├── exporter.py             # export_clip(path, start, end, output)
+│   │   ├── tiktok_exporter.py      # convert_to_tiktok() — variante vertical 9:16 (F13)
+│   │   ├── config.json             # margen y duración de los clips
+│   │   ├── assets/
+│   │   │   └── tiktok_mask.png     # máscara redondeada de la facecam
 │   │   └── model/
-│   │       └── kill_detector.pt   (43 MB, versionado)
+│   │       └── kill_detector.pt    (43 MB, versionado)
 │   ├── data/                # SQLite + storage de vídeos y clips (gitignored)
 │   ├── requirements.txt
 │   └── .env.example
@@ -110,6 +113,36 @@ El backend arranca en `http://127.0.0.1:8000`. Al iniciar, el evento
    El procesamiento de un clip de ~30 s a 720p tarda **~7 s** en CPU.
 5. **Reproducir y descargar** los clips generados.
 
+### Conversión a formato TikTok (opcional)
+
+Al subir un vídeo, el formulario de subida tiene un bloque
+"**Configuración avanzada (opcional)**" donde, junto a los sliders de
+sensibilidad del detector, hay un checkbox **"Generar también versión
+TikTok (vertical 9:16)"**. Si lo marcas, el procesamiento generará
+para cada clip detectado, además del MP4 horizontal estándar, una
+**variante vertical 1080×1920** lista para subir a TikTok / Reels /
+Shorts. La página de detalle del vídeo muestra entonces dos botones
+de descarga por clip: "Descargar (16:9)" y "Descargar TikTok (9:16)".
+
+La conversión se hace en una sola pasada de `ffmpeg` con
+`filter_complex`: el gameplay se reescala al canvas vertical, la
+facecam se recorta y se escala 2× sobre una máscara redondeada
+(`backend/detector/assets/tiktok_mask.png`), y se hace overlay de la
+facecam centrada horizontalmente sobre el gameplay.
+
+> **⚠️ Limitación importante**: las coordenadas del recorte están
+> **hardcoded** para el setup específico de OBS del autor (facecam
+> 310×170 en (0, 140), gameplay 640×720 en (340, 0)). En grabaciones
+> con otra disposición de cámara/gameplay la conversión saldrá
+> descuadrada. La configuración por usuario (UI de calibración o
+> ajustes en `/account.html`) queda como mejora documentada en
+> [`docs/trabajo_futuro.md`](docs/trabajo_futuro.md) sección
+> "Convertidor TikTok configurable".
+
+Si la conversión falla por cualquier motivo (formato no soportado,
+mask faltante, etc.), el clip horizontal se exporta correctamente y
+solo se pierde la variante TikTok — el procesamiento no aborta.
+
 ### API
 
 La documentación interactiva (Swagger UI) está en
@@ -124,8 +157,9 @@ todos los endpoints sin frontend.
 | `POST` | `/api/videos` | Sube un vídeo (multipart) y encola su procesamiento |
 | `GET` | `/api/videos` | Lista los vídeos del usuario |
 | `GET` | `/api/videos/{id}` | Detalle del vídeo + clips |
-| `GET` | `/api/clips/{id}/download` | Descarga el clip (Content-Disposition: attachment) |
+| `GET` | `/api/clips/{id}/download` | Descarga el clip horizontal 16:9 (Content-Disposition: attachment) |
 | `GET` | `/api/clips/{id}/stream` | Sirve el clip inline para `<video>` |
+| `GET` | `/api/clips/{id}/tiktok` | Descarga la variante vertical 9:16 si fue generada (404 si no) |
 | `GET` | `/api/health` | Healthcheck (`{"status":"ok"}`) |
 
 ## Troubleshooting

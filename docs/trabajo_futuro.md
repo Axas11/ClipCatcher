@@ -219,6 +219,49 @@
 
 ---
 
+## Edición de vídeo
+
+### Convertidor TikTok configurable
+- **Estado MVP (F13.2):** El usuario puede activar un checkbox al subir el
+  vídeo para que ClipCatcher genere también la variante vertical 9:16 de
+  cada clip detectado, con la facecam superpuesta sobre una máscara
+  redondeada y centrada sobre el gameplay reescalado a 1080×1920. La
+  conversión se hace en una sola pasada de `ffmpeg` con `filter_complex`,
+  delegada en `backend/detector/tiktok_exporter.py`. Todas las coordenadas
+  de crop están **hardcoded** para el setup específico de OBS del autor:
+  - **Facecam**: 310×170 px en posición `(0, 140)`.
+  - **Gameplay**: 640×720 px en posición `(340, 0)`.
+  - Escalado de la facecam ×2, posición flotante centrada horizontalmente
+    a `y = 250` sobre el canvas vertical.
+  En grabaciones con otro layout estas coordenadas producen resultados
+  descuadrados.
+- **Justificación:** Para un MVP, "funciona para mi setup" es aceptable
+  como prueba de concepto del pipeline. Hacerlo configurable requería
+  diseño de UI específica (calibración visual o 8 inputs numéricos
+  acoplados que se entiendan sin documentación) que se sale del alcance
+  de la entrega.
+- **Plan futuro:**
+  - **Calibración visual por usuario:** subir un fotograma representativo
+    de la grabación y dibujar con el ratón los recortes facecam y
+    gameplay sobre la imagen. Persistir las 8 coordenadas en una nueva
+    tabla `user_tiktok_settings` o como columnas adicionales del User.
+  - **Alternativa más simple:** exponer los 8 valores como sliders/inputs
+    numéricos en `/account.html` (mismo patrón que F6X con
+    `chain_window_seconds` etc.).
+  - **Override por vídeo en la subida:** mismo patrón que F10.2 con los
+    settings del detector — la calibración persistente vive en el User
+    pero se puede sobreescribir por subida si una grabación concreta
+    tiene otro layout.
+  - **Soporte de máscaras alternativas:** rectangular, oval, sin máscara
+    (facecam recortada limpia), o subir una máscara propia en PNG con
+    alpha. Asset actualmente fijo en
+    `backend/detector/assets/tiktok_mask.png`.
+  - **Posición de la facecam configurable:** ahora siempre flotante
+    centrada en `y = 250`. Permitir esquinas (top-left, top-right,
+    bottom-left, bottom-right) o coordenadas libres.
+
+---
+
 ## Resumen ejecutivo
 
 | Componente | MVP entregable | Producción objetivo |
@@ -231,7 +274,7 @@
 | Auth | Email + password + JWT | + Google OAuth |
 | Análisis visual | CNN ResNet18 (killfeed) | + pipeline reproducible + chain window por juego |
 | Análisis audio | — | Whisper + librosa (opt-in) |
-| Edición | Recorte temporal directo | Editor estilo TikTok (vertical, facecam, subtítulos) |
+| Edición | Recorte temporal directo + variante 9:16 con coords hardcoded (F13.2) | Editor estilo TikTok configurable (calibración visual, máscaras alternativas, subtítulos) |
 | Configuración por usuario | Globales en `config.json` | Tabla `user_settings` (sensibilidad, margen, duración) |
 | Frontend | HTML/CSS/JS plano | React + Vite (opcional) |
 | Negocio | Sin créditos / sin planes | Modelo de suscripción |
