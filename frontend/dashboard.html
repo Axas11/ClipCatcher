@@ -44,9 +44,23 @@
       <div id="alert-slot"></div>
 
       <div id="videos-slot">
-        <div class="row" style="justify-content: center; padding: 40px 0;">
-          <span class="spinner"></span>
-          <span class="text-mute">Cargando vídeos…</span>
+        <div class="card-grid" id="skeleton-grid">
+          <!-- 3 skeleton cards animadas mientras llega listVideos(). -->
+          <div class="skeleton-card">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+            <div class="skeleton-line skeleton-meta"></div>
+          </div>
         </div>
       </div>
     </section>

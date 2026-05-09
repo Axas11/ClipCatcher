@@ -599,6 +599,43 @@ input[type="file"] {
 .toast-warning { border-left-color: var(--warning); color: var(--warning); }
 .toast-warning .toast-msg { color: var(--text); }
 
+/* ============ Skeleton loaders (F9.2) ============
+ * Cards placeholder mientras se carga la lista de videos. Mismo
+ * tamano y border que .video-card; los hijos `.skeleton-line` son
+ * gris translucido con un shimmer horizontal de 1.5s. */
+
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* mismo footprint que .video-card pero sin hover ni cursor */
+}
+
+.skeleton-line {
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: skeleton-shimmer 1.5s linear infinite;
+}
+
+.skeleton-line.skeleton-title { height: 16px; width: 70%; }
+.skeleton-line.skeleton-meta  { height: 10px; width: 45%; }
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ============ Status badges (videos) ============ */
 
 .status {
