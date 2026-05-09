@@ -31,7 +31,7 @@
     </header>
 
     <section>
-      <div class="row" style="margin-bottom: 14px;">
+      <div class="row" style="margin-bottom: var(--space-3);">
         <a class="btn btn-ghost" href="dashboard.html">← Volver</a>
       </div>
 
@@ -136,7 +136,7 @@
       slot.innerHTML = `
         <h1>${escapeHtml(video.original_filename)}</h1>
         <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)}</p>
-        <div class="row" style="margin-bottom: 14px;">
+        <div class="row" style="margin-bottom: var(--space-3);">
           <span class="status status-failed">
             <i data-lucide="x-circle"></i>failed
           </span>
@@ -161,7 +161,7 @@
         <div id="stage-done" class="${initClass}">
           <h1>${escapeHtml(video.original_filename)}</h1>
           <p class="mono">#${video.id} · subido ${fmtDate(video.uploaded_at)} · procesado ${fmtDate(video.processed_at)}</p>
-          <div class="row" style="margin-bottom: 18px;">
+          <div class="row" style="margin-bottom: var(--space-4);">
             <span class="status status-done">
               <i data-lucide="check-circle"></i>done
             </span>

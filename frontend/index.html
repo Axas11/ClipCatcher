@@ -39,11 +39,11 @@
 
       <form id="form-login" autocomplete="on">
         <div class="field">
-          <label for="login-email">Email</label>
+          <label class="field-label" for="login-email">Email</label>
           <input id="login-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
         </div>
         <div class="field">
-          <label for="login-password">Contraseña</label>
+          <label class="field-label" for="login-password">Contraseña</label>
           <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="········">
         </div>
         <button type="submit" class="btn btn-primary btn-block" id="btn-login">Entrar</button>
@@ -64,15 +64,15 @@
 
       <form id="form-register" class="hidden" autocomplete="on">
         <div class="field">
-          <label for="reg-name">Nombre</label>
+          <label class="field-label" for="reg-name">Nombre</label>
           <input id="reg-name" name="name" type="text" required minlength="1" maxlength="120" autocomplete="name" placeholder="Tu nombre">
         </div>
         <div class="field">
-          <label for="reg-email">Email</label>
+          <label class="field-label" for="reg-email">Email</label>
           <input id="reg-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
         </div>
         <div class="field">
-          <label for="reg-password">Contraseña <span class="text-mute">(mínimo 8 caracteres)</span></label>
+          <label class="field-label" for="reg-password">Contraseña <span class="text-mute" style="text-transform: none; letter-spacing: 0;">(mínimo 8 caracteres)</span></label>
           <input id="reg-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="········">
         </div>
         <button type="submit" class="btn btn-primary btn-block" id="btn-register">Crear cuenta</button>
