@@ -20,6 +20,15 @@ python-jose[cryptography]==3.3.0
 passlib==1.7.4
 bcrypt==4.0.1
 
+# --- OAuth (Google Sign-In, F8) ---
+# authlib gestiona el discovery OIDC, intercambio de code y validacion de
+# id_token automaticamente; httpx es el backend HTTP que usa internamente.
+# itsdangerous lo necesita Starlette SessionMiddleware para firmar la cookie
+# de sesion donde authlib guarda el state CSRF entre /login y /callback.
+authlib==1.3.2
+httpx==0.27.2
+itsdangerous==2.2.0
+
 # --- Vision por computador (motor del detector) ---
 # torch 2.5.1 no tiene wheels para Python 3.13; bumpeado a 2.7.1 (torchvision
 # 0.22.1 es la pareja oficial). Versiones CPU; GPU queda fuera del MVP.

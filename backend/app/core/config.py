@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     storage_path: str = "./data/storage"
     max_upload_bytes: int = 10_737_418_240
 
+    # Google OAuth (F8). Todas opcionales: si `google_client_id` esta vacio,
+    # el frontend oculta el boton y los endpoints /api/auth/google/* devuelven
+    # 503. Asi se puede usar la app solo con email+password sin credenciales
+    # de Google Cloud (degradacion elegante).
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://127.0.0.1:8001/api/auth/google/callback"
+    frontend_url: str = "http://127.0.0.1:8001"
+
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
