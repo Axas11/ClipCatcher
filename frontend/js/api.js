@@ -72,6 +72,19 @@ export async function getMe() {
   return res.json();
 }
 
+export async function getMySettings() {
+  const res = await _request('/users/me/settings');
+  return res.json();
+}
+
+export async function updateMySettings(payload) {
+  const res = await _request('/users/me/settings', {
+    method: 'PUT',
+    json: payload,
+  });
+  return res.json();
+}
+
 /* ----------------------- Videos ----------------------- */
 
 export async function listVideos() {
