@@ -81,25 +81,29 @@ a:hover { text-decoration: underline; }
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   letter-spacing: -0.5px;
   font-size: 28px;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.brand-icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  color: var(--cyan);
+  filter: drop-shadow(0 0 8px rgba(0, 224, 255, 0.4));
+}
+
+.brand-text {
   background: var(--gradient);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.brand .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 12px rgba(0, 224, 255, 0.7);
-  -webkit-text-fill-color: var(--cyan);
 }
 
 .user-pill {
