@@ -187,15 +187,17 @@ h3 { font-size: 16px; margin-bottom: 8px; }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 18px;
-  transition: border-color 0.15s, transform 0.15s;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  cursor: pointer;
 }
 
 .video-card:hover {
-  border-color: var(--border-soft);
+  border-color: var(--cyan);
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(0, 224, 255, 0.35);
 }
 
 .video-card a { color: var(--text); }
