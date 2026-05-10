@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClipCatcher · Mi cuenta</title>
-  <meta name="description" content="Gestiona tu perfil, contraseña y configuración del detector.">
+  <meta name="description" content="Gestiona tu perfil y contraseña.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,19 +14,21 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_ES">
   <meta property="og:title" content="ClipCatcher · Mi cuenta">
-  <meta property="og:description" content="Gestiona tu perfil, contraseña y configuración del detector.">
+  <meta property="og:description" content="Gestiona tu perfil y contraseña.">
   <meta property="og:image" content="favicon.svg">
   <meta name="twitter:card" content="summary">
 </head>
+
 <body>
   <main class="app-shell">
     <header class="app-header">
       <a class="brand" href="dashboard.html">
-        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/>
-          <path d="m6.2 5.3 3.1 3.9"/>
-          <path d="m12.4 3.4 3.1 4"/>
-          <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z" />
+          <path d="m6.2 5.3 3.1 3.9" />
+          <path d="m12.4 3.4 3.1 4" />
+          <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
         </svg>
         <span class="brand-text">ClipCatcher</span>
       </a>
@@ -68,7 +71,8 @@
         <form id="form-profile">
           <div class="field">
             <label class="field-label" for="profile-name">Nombre</label>
-            <input id="profile-name" name="name" type="text" maxlength="120" autocomplete="name" placeholder="Tu nombre">
+            <input id="profile-name" name="name" type="text" maxlength="120" autocomplete="name"
+              placeholder="Tu nombre">
           </div>
           <div class="field">
             <label class="field-label" for="profile-email">Email</label>
@@ -92,7 +96,7 @@
       </article>
 
       <!-- ============ CARD 2: Seguridad ============ -->
-      <article class="card" id="security-card" style="margin-bottom: var(--space-6);">
+      <article class="card" id="security-card">
         <div class="section-head">
           <h2>Seguridad</h2>
           <p class="section-sub">Cambia tu contraseña.</p>
@@ -101,7 +105,8 @@
         <!-- Variante para cuentas Google: info-box explicativo. -->
         <div id="security-google-box" class="info-box" hidden>
           <i data-lucide="info"></i>
-          <p>Tu cuenta usa <strong>Google</strong> para iniciar sesión. La gestión de la contraseña la realiza Google directamente.</p>
+          <p>Tu cuenta usa <strong>Google</strong> para iniciar sesión. La gestión de la contraseña la realiza Google
+            directamente.</p>
         </div>
 
         <!-- Variante para cuentas email+password: form de cambio. -->
@@ -112,12 +117,14 @@
           </div>
           <div class="field">
             <label class="field-label" for="pwd-new">Nueva contraseña</label>
-            <input id="pwd-new" name="new_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+            <input id="pwd-new" name="new_password" type="password" autocomplete="new-password" minlength="8"
+              maxlength="128" required>
             <p class="field-hint">Mínimo 8 caracteres.</p>
           </div>
           <div class="field">
             <label class="field-label" for="pwd-confirm">Confirmar nueva contraseña</label>
-            <input id="pwd-confirm" name="confirm_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+            <input id="pwd-confirm" name="confirm_password" type="password" autocomplete="new-password" minlength="8"
+              maxlength="128" required>
             <p class="field-hint" id="pwd-mismatch-hint" hidden style="color: var(--danger); font-style: normal;">
               Las contraseñas no coinciden.
             </p>
@@ -131,47 +138,18 @@
           </div>
         </form>
       </article>
-
-      <!-- ============ CARD 3: Configuración del detector ============ -->
-      <article class="card">
-        <div class="section-head">
-          <h2>Configuración del detector</h2>
-          <p class="section-sub">Estos valores se aplican <strong>por defecto</strong> a cada nuevo vídeo. Puedes sobrescribirlos en cada subida individual desde "Configuración avanzada".</p>
-        </div>
-
-        <div class="unsaved-banner hidden" id="settings-unsaved">
-          <i data-lucide="alert-circle"></i>
-          <span>Cambios sin guardar</span>
-        </div>
-
-        <form id="form-settings">
-          <div id="sliders-slot"></div>
-
-          <div class="row row-end" style="margin-top: var(--space-5); gap: var(--space-3);">
-            <button type="button" class="btn btn-secondary" id="btn-settings-reset" disabled>
-              <i data-lucide="rotate-ccw"></i>
-              <span>Descartar</span>
-            </button>
-            <button type="submit" class="btn btn-primary" id="btn-settings-save">
-              <i data-lucide="save"></i>
-              <span id="btn-settings-save-label">Guardar configuración</span>
-            </button>
-          </div>
-        </form>
-      </article>
     </section>
   </main>
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
     import {
-      getMe, getMySettings, updateMySettings,
+      getMe,
       updateMyProfile, changeMyPassword,
       ApiError,
     } from './js/api.js';
     import { requireAuth, logout } from './js/auth.js';
     import { showToast } from './js/toast.js';
-    import { mountSlider } from './js/slider.js';
     import { initPageTransitions, mountFooter } from './js/animations.js';
 
     initPageTransitions();
@@ -204,11 +182,11 @@
     const btnProfileSave = document.getElementById('btn-profile-save');
     const btnProfileSaveLabel = document.getElementById('btn-profile-save-label');
     const btnProfileReset = document.getElementById('btn-profile-reset');
-    let savedProfile = { name: '', email: '' };
+    let savedProfile = { name: '', kemail: '' };
 
     function profileIsDirty() {
       return inputName.value.trim() !== savedProfile.name
-          || inputEmail.value.trim() !== savedProfile.email;
+        || inputEmail.value.trim() !== savedProfile.email;
     }
     function refreshProfileDirty() {
       const dirty = profileIsDirty();
@@ -309,107 +287,6 @@
       }
     });
 
-    // ============ CARD 3: Settings del detector ============
-    const FIELDS = ['chain_window_seconds', 'clip_margin_seconds', 'clip_duration_seconds'];
-    const RANGES = {
-      chain_window_seconds:  { min: 1, max: 60, step: 0.5 },
-      clip_margin_seconds:   { min: 0, max: 10, step: 0.5 },
-      clip_duration_seconds: { min: 1, max: 60, step: 0.5 },
-    };
-    const LABELS = {
-      chain_window_seconds:  'Ventana de encadenamiento',
-      clip_margin_seconds:   'Margen del clip',
-      clip_duration_seconds: 'Duración base del clip',
-    };
-    const HINTS = {
-      chain_window_seconds:  'Tiempo máximo entre kills para agruparlas en un mismo clip.',
-      clip_margin_seconds:   'Segundos extra al inicio y al final de cada clip.',
-      clip_duration_seconds: 'Duración mínima del clip generado.',
-    };
-    const formSettings = document.getElementById('form-settings');
-    const slidersSlot = document.getElementById('sliders-slot');
-    const settingsUnsaved = document.getElementById('settings-unsaved');
-    const btnSettingsSave = document.getElementById('btn-settings-save');
-    const btnSettingsSaveLabel = document.getElementById('btn-settings-save-label');
-    const btnSettingsReset = document.getElementById('btn-settings-reset');
-    let savedSettings = { chain_window_seconds: 6, clip_margin_seconds: 2, clip_duration_seconds: 6 };
-    const currentSettings = { ...savedSettings };
-    const sliders = {};
-
-    function fmtSeconds(v) { return `${Number(v).toFixed(1)} s`; }
-    function settingsIsDirty() {
-      return FIELDS.some(f => Math.abs(currentSettings[f] - savedSettings[f]) > 1e-6);
-    }
-    function refreshSettingsDirty() {
-      const dirty = settingsIsDirty();
-      settingsUnsaved.classList.toggle('hidden', !dirty);
-      btnSettingsReset.disabled = !dirty;
-    }
-    function buildSliders() {
-      slidersSlot.innerHTML = '';
-      for (const f of FIELDS) {
-        const r = RANGES[f];
-        const s = mountSlider({
-          label: LABELS[f],
-          hint: HINTS[f],
-          min: r.min, max: r.max, step: r.step,
-          value: currentSettings[f],
-          format: fmtSeconds,
-          onChange: (v) => { currentSettings[f] = v; refreshSettingsDirty(); },
-        });
-        slidersSlot.appendChild(s.element);
-        sliders[f] = s;
-      }
-      if (window.lucide) window.lucide.createIcons();
-    }
-    function applySettings(target) {
-      for (const f of FIELDS) {
-        currentSettings[f] = target[f];
-        if (sliders[f]) sliders[f].setValue(target[f]);
-      }
-      refreshSettingsDirty();
-    }
-    btnSettingsReset.addEventListener('click', () => {
-      applySettings(savedSettings);
-      showToast('Cambios descartados', 'info', 2000);
-    });
-
-    function formatPydanticErrors(body) {
-      if (!body || !Array.isArray(body.detail)) return null;
-      return body.detail.map(err => {
-        const field = (err.loc || []).filter(p => p !== 'body').join('.');
-        return field ? `${field}: ${err.msg}` : err.msg;
-      }).join('; ');
-    }
-
-    formSettings.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      btnSettingsSave.dataset.loading = 'true';
-      btnSettingsSaveLabel.textContent = 'Guardando…';
-      try {
-        const payload = {};
-        for (const f of FIELDS) payload[f] = currentSettings[f];
-        const updated = await updateMySettings(payload);
-        savedSettings = {
-          chain_window_seconds: updated.chain_window_seconds,
-          clip_margin_seconds: updated.clip_margin_seconds,
-          clip_duration_seconds: updated.clip_duration_seconds,
-        };
-        applySettings(savedSettings);
-        showToast('Configuración guardada', 'success');
-      } catch (err) {
-        let msg = err.detail || 'No se pudo guardar la configuración.';
-        if (err instanceof ApiError && err.status === 422) {
-          const formatted = formatPydanticErrors(err.body);
-          if (formatted) msg = `Valores fuera de rango: ${formatted}`;
-        }
-        showToast(msg, 'error', 5000);
-      } finally {
-        btnSettingsSave.dataset.loading = 'false';
-        btnSettingsSaveLabel.textContent = 'Guardar configuración';
-      }
-    });
-
     // ============ Bootstrap ============
     (async () => {
       try {
@@ -436,18 +313,8 @@
         if (err instanceof ApiError && err.status === 401) return;
         showToast('No se pudo cargar tu perfil', 'error', 5000);
       }
-      try {
-        const settings = await getMySettings();
-        for (const f of FIELDS) {
-          savedSettings[f] = settings[f];
-          currentSettings[f] = settings[f];
-        }
-      } catch (err) {
-        showToast(`No se pudo cargar la configuración: ${err.detail || err.message}`, 'error', 5000);
-      }
-      buildSliders();
-      refreshSettingsDirty();
     })();
   </script>
 </body>
+
 </html>

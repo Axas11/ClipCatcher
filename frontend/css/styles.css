@@ -617,15 +617,12 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   list-style: none;
   cursor: pointer;
   padding: var(--space-3) var(--space-4);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
+  display: block;
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 14px;
   color: var(--text);
-  user-select: none;
+  user-select: none; 
 }
 .disclosure-summary::-webkit-details-marker { display: none; }
 .disclosure-summary::marker { display: none; }
@@ -643,12 +640,11 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
  * que en viewports muy estrechos (320-360px) el texto rompa entre
  * "avanzada" y "(opcional)" en lugar de truncarse a "C...". */
 .disclosure-summary .summary-left {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  flex: 1 1 100%;
-  min-width: 0;
-  white-space: normal;
+  margin-bottom: var(--space-2);
 }
 .disclosure-summary .summary-left .summary-aux {
   color: var(--text-mute);
@@ -667,26 +663,8 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid;
-  flex: 0 0 auto;
-  align-self: flex-start;
 }
 
-/* Desktop (>=720px): heading y pill en una sola fila distribuidos por
- * justify-content: space-between, sin wrap. nowrap en summary-left para
- * que el heading + (opcional) viajen juntos en horizontal. */
-@media (min-width: 720px) {
-  .disclosure-summary {
-    flex-wrap: nowrap;
-    justify-content: space-between;
-  }
-  .disclosure-summary .summary-left {
-    flex: 1 1 auto;
-    white-space: nowrap;
-  }
-  .disclosure-summary .summary-status {
-    align-self: center;
-  }
-}
 .summary-status[data-state="default"] {
   color: var(--success);
   border-color: rgba(52, 211, 153, 0.40);
@@ -1834,7 +1812,8 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
  * grandes con baja opacidad que se mueven lento via background-position). */
 .hero {
   position: relative;
-  padding-block: clamp(80px, 10vw, 160px);
+  padding-top: clamp(32px, 4vw, 60px);
+  padding-bottom: 0;
   text-align: center;
   overflow: hidden;
 }
