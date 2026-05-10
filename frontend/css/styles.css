@@ -86,6 +86,30 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
+/* Sticky footer: body como flex column, contenedor principal con
+ * flex: 1 0 auto para empujar al footer al fondo cuando el contenido
+ * es corto. Funciona en las 6 paginas: index (.landing-shell envuelve
+ * el footer), dashboard/upload/video/account (<main> + <footer>
+ * hermanos via mountFooter), 404 (.not-found-shell + footer). */
+body {
+  display: flex;
+  flex-direction: column;
+}
+body > main,
+body > .not-found-shell {
+  flex: 1 0 auto;
+}
+body > .landing-shell {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.landing-shell > footer.site-footer { margin-top: auto; }
+body > footer.site-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
 body::before {
   /* Fondo decorativo: glow neon arriba a izquierda y derecha. */
   content: "";
