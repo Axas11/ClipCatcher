@@ -1152,6 +1152,22 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .btn-google svg { width: 18px; height: 18px; }
 
+/* Link "¿Olvidaste tu contraseña?" debajo del form de login (F14.2). */
+.forgot-link {
+  text-align: center;
+  margin: var(--space-3) 0 0;
+  font-size: 13px;
+}
+.forgot-link a {
+  color: var(--text-mute);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.forgot-link a:hover {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
 /* Divider "── o ──" usado entre el form email+password y el boton de
  * Google en la pantalla de login. */
 .auth-divider {

@@ -87,6 +87,29 @@ export async function getGlobalStats() {
   return res.json();
 }
 
+/* F14: solicita un email de reset de contraseña. SIEMPRE 200 con
+ * detail generico (anti-enumeration). */
+export async function forgotPassword(email) {
+  const res = await _request('/auth/forgot-password', {
+    method: 'POST',
+    json: { email },
+    skipAuth: true,
+  });
+  return res.json();
+}
+
+/* F14: consume un token de reset y establece la nueva contraseña.
+ * 400 con detail especifico si el token es invalido / usado /
+ * expirado. 200 + detail "Contraseña actualizada" en exito. */
+export async function resetPassword(token, newPassword) {
+  const res = await _request('/auth/reset-password', {
+    method: 'POST',
+    json: { token, new_password: newPassword },
+    skipAuth: true,
+  });
+  return res.json();
+}
+
 /* F12.2: timeline de eventos recientes del usuario actual. */
 export async function getMyActivity() {
   const res = await _request('/users/me/activity');

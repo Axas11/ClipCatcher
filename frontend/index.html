@@ -188,6 +188,9 @@
               <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="········">
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="btn-login">Entrar</button>
+            <p class="forgot-link">
+              <a href="#" id="forgot-link">¿Olvidaste tu contraseña?</a>
+            </p>
           </form>
 
           <div id="google-block" class="hidden">
@@ -250,9 +253,36 @@
     </footer>
   </div>
 
+  <!-- F14.2: modal de "olvide mi contrasena". Oculto por defecto;
+       se abre al click en #forgot-link. -->
+  <div class="modal-backdrop hidden" id="forgot-modal" role="dialog" aria-modal="true" aria-labelledby="forgot-title">
+    <div class="modal" role="document">
+      <div class="modal-head">
+        <span class="modal-icon modal-icon-primary"><i data-lucide="mail"></i></span>
+        <h3 class="modal-title" id="forgot-title">Recupera tu contraseña</h3>
+      </div>
+      <p class="modal-body">
+        Introduce tu email y te enviaremos un enlace para crear una contraseña nueva.
+        El enlace caduca en 1 hora.
+      </p>
+      <form id="forgot-form">
+        <div class="field">
+          <label class="field-label" for="forgot-email">Email</label>
+          <input id="forgot-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="forgot-cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="forgot-submit">
+            <span id="forgot-submit-label">Enviar enlace</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module">
-    import { login, register, googleAuthAvailable, getGlobalStats, ApiError } from './js/api.js';
+    import { login, register, googleAuthAvailable, getGlobalStats, forgotPassword, ApiError } from './js/api.js';
     import { saveToken, getToken } from './js/auth.js';
     import { showToast } from './js/toast.js';
     import { initRevealOnScroll, animateCounter, easeOutQuart } from './js/animations.js';
@@ -290,6 +320,13 @@
     if (oauthError) {
       showToast(oauthError, 'error', 5000);
       history.replaceState({}, '', location.pathname);
+    }
+
+    // F14.2: toast persistido tras un reset-password exitoso.
+    const _toastResetOk = sessionStorage.getItem('toast.reset.success');
+    if (_toastResetOk) {
+      sessionStorage.removeItem('toast.reset.success');
+      showToast(_toastResetOk, 'success', 5000);
     }
 
     // Si ya hay token, ir directos al dashboard.
@@ -362,6 +399,65 @@
         }
         showAlert('error', msg);
         btn.dataset.loading = 'false'; btn.textContent = 'Crear cuenta';
+      }
+    });
+
+    // ============ Forgot password modal (F14.2) ============
+    const forgotLink = document.getElementById('forgot-link');
+    const forgotModal = document.getElementById('forgot-modal');
+    const forgotForm = document.getElementById('forgot-form');
+    const forgotEmail = document.getElementById('forgot-email');
+    const forgotCancel = document.getElementById('forgot-cancel');
+    const forgotSubmit = document.getElementById('forgot-submit');
+    const forgotSubmitLabel = document.getElementById('forgot-submit-label');
+
+    function openForgotModal() {
+      // Pre-rellenar con el email del form de login si lo hay.
+      const loginEmail = document.getElementById('login-email').value.trim();
+      if (loginEmail) forgotEmail.value = loginEmail;
+      forgotModal.classList.remove('hidden');
+      // Reflow para activar la transicion del backdrop.
+      // eslint-disable-next-line no-unused-expressions
+      forgotModal.offsetHeight;
+      forgotModal.classList.add('modal-show');
+      setTimeout(() => forgotEmail.focus(), 50);
+    }
+    function closeForgotModal() {
+      forgotModal.classList.remove('modal-show');
+      setTimeout(() => forgotModal.classList.add('hidden'), 200);
+    }
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearAlert();
+      openForgotModal();
+    });
+    forgotCancel.addEventListener('click', closeForgotModal);
+    forgotModal.addEventListener('click', (e) => {
+      if (e.target === forgotModal) closeForgotModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && forgotModal.classList.contains('modal-show')) {
+        closeForgotModal();
+      }
+    });
+    forgotForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      forgotSubmit.dataset.loading = 'true';
+      forgotSubmitLabel.textContent = 'Enviando…';
+      try {
+        const data = await forgotPassword(forgotEmail.value.trim());
+        closeForgotModal();
+        showToast(data.detail || 'Solicitud recibida. Revisa tu email.', 'success', 6000);
+      } catch (err) {
+        // Anti-enumeration: el backend siempre 200. Si llega aqui es
+        // error de red o 422 por email malformado.
+        const msg = err instanceof ApiError && err.status === 422
+          ? 'Email no válido.'
+          : (err.detail || 'No se pudo enviar la solicitud. Inténtalo de nuevo.');
+        showToast(msg, 'error', 5000);
+      } finally {
+        forgotSubmit.dataset.loading = 'false';
+        forgotSubmitLabel.textContent = 'Enviar enlace';
       }
     });
 
