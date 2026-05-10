@@ -618,8 +618,9 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   cursor: pointer;
   padding: var(--space-3) var(--space-4);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 14px;
@@ -637,27 +638,22 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 }
 .disclosure[open] .disclosure-summary .chev { transform: rotate(90deg); }
 
-/* Fila superior: chevron + heading + "(opcional)" en una sola linea
- * con nowrap. Si no cabe, el "(opcional)" puede colapsar pero el
- * heading nunca se rompe. */
+/* Mobile (<720px): el heading ocupa una fila completa (flex-basis 100%)
+ * y la pill cae debajo en su propia fila. white-space: normal permite
+ * que en viewports muy estrechos (320-360px) el texto rompa entre
+ * "avanzada" y "(opcional)" en lugar de truncarse a "C...". */
 .disclosure-summary .summary-left {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
-  white-space: nowrap;
-}
-.disclosure-summary .summary-left > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
 }
 .disclosure-summary .summary-left .summary-aux {
   color: var(--text-mute);
   font-size: 13px;
   font-weight: 400;
-  flex-shrink: 1;
-  min-width: 0;
 }
 
 .disclosure-summary .summary-status {
@@ -671,20 +667,24 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid;
-  align-self: flex-start;  /* pill alineado a la izquierda en mobile */
+  flex: 0 0 auto;
+  align-self: flex-start;
 }
 
-/* En desktop apilamos en horizontal: heading a la izquierda, pill
- * a la derecha en la misma fila. */
-@media (min-width: 700px) {
+/* Desktop (>=720px): heading y pill en una sola fila distribuidos por
+ * justify-content: space-between, sin wrap. nowrap en summary-left para
+ * que el heading + (opcional) viajen juntos en horizontal. */
+@media (min-width: 720px) {
   .disclosure-summary {
-    flex-direction: row;
-    align-items: center;
+    flex-wrap: nowrap;
     justify-content: space-between;
+  }
+  .disclosure-summary .summary-left {
+    flex: 1 1 auto;
+    white-space: nowrap;
   }
   .disclosure-summary .summary-status {
     align-self: center;
-    flex-shrink: 0;
   }
 }
 .summary-status[data-state="default"] {
