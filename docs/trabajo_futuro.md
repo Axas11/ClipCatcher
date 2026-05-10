@@ -1,284 +1,241 @@
 # Trabajo futuro — ClipCatcher
 
-> Componentes y funcionalidades que **no** se han implementado en el MVP entregable
-> del TFG (entrega 2026-05-10) y que quedan reservados para una siguiente iteración
-> orientada a producción.
->
-> El criterio para todos los recortes ha sido el mismo: **priorizar un flujo
-> end-to-end demostrable** (login → subir vídeo → procesar con la CNN → listar y
-> reproducir clips) frente a la arquitectura completa descrita en la propuesta
-> original. La arquitectura "completa" sigue siendo la dirección a la que apunta
-> el proyecto.
+Este documento recoge el camino de evolución del MVP entregable hacia un
+producto más completo. Lo que está implementado a día de la entrega
+(detección visual con CNN, login email+password y OAuth Google,
+configuración por vídeo, conversor TikTok básico, recuperación de
+contraseña por email) **no aparece aquí**: solo lo que aún falta y por
+qué encajaría con la arquitectura actual.
 
 ---
 
-## Infraestructura
+## Persistencia y migraciones
 
-### Docker y docker-compose
-- **Estado MVP:** No se usa. Todo se ejecuta localmente con `python` y `uvicorn`.
-- **Justificación:** Para una demo grabada en una máquina local, Docker añade
-  fricción (instalación, healthchecks, puertos) sin aportar valor visible.
-- **Plan futuro:** Empaquetar backend y worker en imágenes separadas, orquestar
-  con `docker-compose` (servicios: backend, worker, mysql, redis, nginx) y
-  preparar despliegue reproducible para cloud.
+El MVP usa SQLite con `Base.metadata.create_all()` al arrancar, sin
+versionado de schema. Funciona para un único usuario evaluando en
+local, pero en cuanto haya datos reales de varios usuarios la falta
+de migraciones se vuelve un problema en cada cambio de modelo.
 
-### Nginx como reverse proxy
-- **Estado MVP:** FastAPI sirve el frontend estático directamente con `StaticFiles`.
-- **Justificación:** En local no hace falta un proxy delante. Un solo proceso
-  basta para la demo.
-- **Plan futuro:** Nginx delante (TLS, compresión, cache de estáticos, rate
-  limiting) cuando el proyecto se publique en un dominio real.
+El siguiente paso lógico es migrar a PostgreSQL e introducir Alembic.
+La capa SQLAlchemy hace que el cambio de motor sea casi transparente
+(cambiar `DATABASE_URL` y revisar tipos específicos como
+`DateTime(timezone=True)`, que en SQLite hoy se devuelve como naive
+y obliga a un `replace(tzinfo=timezone.utc)` defensivo en
+`reset_password`). Postgres elimina ese parche y aporta concurrencia
+real, índices más ricos y herramientas de backup serias.
 
 ---
 
-## Persistencia y procesamiento
+## Procesamiento distribuido
 
-### MySQL
-- **Estado MVP:** Se usa **SQLite** (`backend/data/clipcatcher.db`).
-- **Justificación:** SQLite es cero-configuración, no necesita servidor ni
-  contraseñas y permite que el evaluador clone, instale dependencias y arranque
-  sin más. MySQL exige levantar un servicio aparte y gestionar credenciales.
-- **Plan futuro:** Migrar a MySQL al pasar a producción. La capa SQLAlchemy
-  hace que el cambio sea casi transparente: bastaría con cambiar `DATABASE_URL`
-  y revisar tipos específicos.
+Hoy el procesamiento de un vídeo (analyze + export + opcional
+conversión TikTok) corre en `BackgroundTasks` de FastAPI, dentro del
+mismo proceso del servidor web. Eso bloquea CPU del servidor mientras
+la inferencia ocurre, y limita la concurrencia a lo que aguante un
+solo proceso uvicorn.
 
-### Alembic (migraciones)
-- **Estado MVP:** Las tablas se crean al arrancar con
-  `Base.metadata.create_all(engine)`.
-- **Justificación:** Solo hay un usuario (yo) y la BD se reconstruye en cada
-  arranque del entorno de demo. Migraciones añaden complejidad innecesaria.
-- **Plan futuro:** Inicializar Alembic, generar la primera migración a partir
-  del schema actual y a partir de ahí versionar todos los cambios de modelo.
-
-### Redis + RQ (cola de tareas)
-- **Estado MVP:** Se usa `BackgroundTasks` de FastAPI.
-- **Justificación:** Para una demo con un único usuario subiendo un vídeo a la
-  vez, una cola distribuida sobra. `BackgroundTasks` desacopla la respuesta
-  HTTP del procesamiento sin necesidad de infraestructura extra.
-- **Plan futuro:** Mover el procesamiento a un worker independiente con
-  Redis + RQ (o Celery). Esto permite escalar workers en horizontal, prioridades
-  por plan de usuario y reintentos automáticos.
+El paso natural es mover el procesamiento a un worker independiente
+con Redis + RQ (o Celery), idealmente sobre máquinas con GPU. Esto
+permite escalar workers en horizontal, dar prioridad de cola a los
+planes premium, y reintentar automáticamente cuando un job falla por
+un fallo transitorio (ffmpeg que crashea, OOM, etc.). El servidor web
+queda libre para responder requests, y el procesamiento de un vídeo
+de 30 minutos no afecta a la latencia de un `GET /api/videos`.
 
 ---
 
-## Autenticación
+## Detección visual
 
-### Google OAuth
-- **Estado MVP:** Login y registro con email + contraseña, JWT firmado con
-  `python-jose`.
-- **Justificación:** Google OAuth requiere crear un proyecto en Google Cloud
-  Console, configurar pantalla de consentimiento, gestionar `client_id` /
-  `client_secret`, y manejar callbacks. Para una demo defendible, el usuario y
-  contraseña con JWT es suficiente y se valida igual de bien.
-- **Plan futuro:** Añadir Google OAuth como método adicional (no exclusivo) de
-  autenticación, manteniendo email+password como fallback.
+### Multijuego
 
----
+El clasificador `kill_detector.pt` está entrenado solo con killfeed
+de Valorant. El pipeline es genérico (recorte de ROI →
+preprocesado → CNN binaria), así que la extensión a otros juegos
+pasa por entrenar redes nuevas sobre cada killfeed.
 
-## Análisis de contenido
+Los candidatos obvios son CS2 (killfeed similar al de Valorant pero
+con tipografía y posición distinta), League of Legends (eventos de
+muerte con texto en banner inferior, no en killfeed clásico) y Apex
+Legends (kills se ven en el centro de la pantalla durante los
+finishers, requiere un ROI distinto). Cada juego necesita su propio
+dataset etiquetado y, una vez entrenado, vivir como un `.pt`
+independiente cargado según un parámetro `game` que el usuario
+seleccione al subir el vídeo.
 
-### Whisper (audio)
-- **Estado MVP:** Solo detección visual con la CNN ResNet18 sobre el killfeed.
-- **Justificación:** Whisper descarga modelos de 75 MB - 1.5 GB y aumenta
-  notablemente el tiempo de procesamiento por vídeo. Para el TFG, la detección
-  visual ya demuestra el flujo completo y es el componente diferenciador.
-- **Plan futuro:** Whisper como módulo **opt-in** que el usuario activa por
-  vídeo. Combinaría transcripción (búsqueda por palabras clave) con detección
-  de picos de energía vía librosa para localizar momentos relevantes.
+### Eventos más allá de la kill suelta
 
----
+El detector actual marca frames con kill y agrupa los cercanos en
+clips. Funciona bien para multikills consecutivas, pero no
+distingue entre tipos de momento. Sería interesante reconocer
+patrones de mayor nivel: un **ace** (5 kills en una sola ronda), un
+**clutch** (1 superviviente vs varios enemigos cerrando la ronda),
+**multikills clasificadas** (double / triple / quad / ace), y
+finales de ronda con resultado.
 
-## Modelo de detección visual y reglas de clip
+Algunos se pueden derivar del propio detector existente contando
+kills por ventana temporal, otros requieren una segunda señal:
+indicadores de HUD del estado de la ronda, conteo de jugadores
+vivos, scoreboard. Cada nuevo tipo de evento sería un clasificador
+adicional o una regla de negocio sobre las detecciones primarias.
 
-### Pipeline de entrenamiento del modelo
-- **Estado MVP:** El clasificador `kill_detector.pt` (ResNet18 con head binario)
-  se entrenó **a mano** con un dataset propio de capturas del killfeed de
-  Valorant, etiquetadas manualmente en dos carpetas (`kill/` y `no-kill/`).
-  El proceso de entrenamiento, las hiperparámetros y la división train/val
-  vivieron en un cuaderno/script puntual fuera del repo; en el MVP solo se
-  usa el `.pt` resultante.
-- **Justificación:** Para el TFG basta con un modelo congelado que demuestre
-  el pipeline de inferencia y la cadena end-to-end. Reproducir el entrenamiento
-  exigiría compartir el dataset (decenas de miles de imágenes), versionarlo, y
-  documentar el setup de GPU — fuera del scope del MVP.
-- **Plan futuro:**
-  - Automatizar el pipeline en un script reproducible (`scripts/train.py` o
-    similar): carga del dataset desde una ruta configurable, división
-    train/val (estratificada), training loop con `torch` + `torchvision`,
-    early stopping y guardado del mejor checkpoint en
-    `backend/detector/model/`.
-  - Reportar **precisión y recall** sobre un conjunto de validación
-    independiente, además de matriz de confusión y curva PR. Estas métricas
-    deben quedar versionadas (p.ej. `model_card.md` junto al `.pt`).
-  - Ampliar el dataset con capturas de más partidas, más jugadores y más
-    resoluciones; programar **reentrenamiento periódico** cuando el killfeed
-    cambie de aspecto (parches del juego, eventos especiales).
-  - Considerar exportar a ONNX para inferencia más rápida y portabilidad.
+### Pipeline de entrenamiento reproducible
 
-### Chain window configurable por usuario/juego
-- **Estado MVP:** El parámetro `chain_window` (6 s) — la distancia máxima
-  entre dos detecciones consecutivas para encadenarlas en un mismo clip — está
-  hardcodeado como constante (`_CHAIN_WINDOW_S`) en
-  `backend/detector/analyzer.py`. `config.json` solo expone `margen_clip` y
-  `duracion_clip`.
-- **Justificación:** El valor 6 s refleja la dinámica de Valorant (multikills
-  típicas en menos de 6 s entre frags). Para el MVP no hay multi-juego ni
-  perfiles de usuario, así que un único valor sirve.
-- **Plan futuro:**
-  - Mover `chain_window` a la configuración persistida (BD o `config.json`),
-    con valores **por defecto distintos por juego** (Valorant 6 s, CS2 8 s,
-    LoL 15 s, etc.). El detector recibiría el juego como argumento.
-  - Permitir que cada usuario sobrescriba el valor en sus preferencias
-    (estilo "highlights cortos punzantes" vs "clips narrativos largos").
-  - Exponerlo en la UI de subida del frontend como un selector con presets
-    por juego + override avanzado.
-  - Aplicar el mismo principio a `margen_clip` y `duracion_clip`.
+El modelo actual se entrenó manualmente con un dataset etiquetado
+en dos carpetas y un cuaderno fuera del repo. Antes de añadir más
+juegos conviene formalizar el flujo: un `scripts/train.py` con
+carga del dataset desde una ruta configurable, división train/val
+estratificada, training loop con `torch` y `torchvision`, early
+stopping y guardado del mejor checkpoint. Reportar precisión y
+recall sobre validación independiente, y guardar las métricas en un
+`model_card.md` junto al `.pt` para tener trazabilidad de qué
+modelo se desplegó.
+
+### Whisper para análisis de audio
+
+La detección actual es exclusivamente visual. Whisper permitiría
+añadir una capa de audio: transcripción del jugador para localizar
+momentos por palabra clave ("ace", "que peli", "lo tengo"), y
+detección de picos de energía con librosa para encontrar reacciones
+emocionales que la CNN no ve.
+
+Whisper descarga modelos de 75 MB a 1.5 GB y aumenta tiempo de
+procesamiento, así que tendría sentido como módulo opt-in que el
+usuario activa por vídeo, idealmente solo para planes premium.
 
 ---
 
-## Negocio y monetización
+## Convertidor TikTok configurable
 
-### Sistema de créditos, planes y suscripciones
-- **Estado MVP:** No existe. Un usuario, sin límites, sin pagos.
-- **Justificación:** Es trabajo de producto, no de TFG. Un sistema de créditos
-  serio implica integración con pasarela de pago, lógica de facturación, y
-  gestión de estados de suscripción — todo ello fuera del alcance académico.
-- **Plan futuro:** Modelo `Plan`, `Subscription` y `CreditLedger`. Cuotas por
-  plan: tamaño máximo de subida (free 2 GB / premium 10 GB), prioridad de cola,
-  marca de agua en plan free, acceso a Whisper solo en premium.
+El conversor 9:16 que existe hoy en `backend/detector/tiktok_exporter.py`
+funciona pero con coordenadas de crop hardcoded para el setup de OBS
+del autor: facecam 310×170 en (0, 140) y gameplay 640×720 en (340, 0).
+En grabaciones con otro layout sale descuadrado.
 
----
+La forma más amable de hacerlo configurable es una calibración
+visual: el usuario sube un fotograma representativo de su grabación
+y dibuja con el ratón los recortes facecam y gameplay sobre la
+imagen. Las 8 coordenadas resultantes se persisten en
+`user_tiktok_settings` (o como columnas del User) y se aplican a
+cada conversión futura. Como atajo previo, se podrían exponer los 8
+valores como sliders en `/account.html`, igual que ya están las
+opciones del detector.
 
-## Producto y experiencia de usuario
-
-### Editor de clips estilo TikTok
-- **Estado MVP:** No existe. Los clips se exportan tal cual los detecta el
-  motor (recorte temporal, manteniendo la composición original 16:9), y se
-  reproducen y descargan sin transformación adicional.
-- **Justificación:** Un editor con composición vertical (facecam + gameplay
-  apilados), subtítulos generados, y elementos visuales superpuestos exige
-  un pipeline de edición de vídeo significativamente más complejo (timeline
-  por capas, transcodificación, fuentes y assets) y multiplicaría el tiempo
-  de implementación. Descartado del MVP en la decisión de scope.
-- **Plan futuro:** Pipeline de edición server-side: capa de gameplay (recorte
-  vertical 9:16 del centro), capa de facecam (overlay si el usuario sube su
-  webcam), subtítulos auto-generados (Whisper, también en trabajo futuro),
-  marca de agua opcional. Plantillas predefinidas por tipo de highlight
-  (1v1, multikill, clutch). Edición no destructiva sobre el vídeo original.
-
-### Configuración mínima de cuenta con ajuste de sensibilidad (F6X)
-- **Estado MVP:** No hay panel de configuración. El umbral de detección y
-  los parámetros del clipping (`margen_clip`, `duracion_clip`,
-  `chain_window`) son globales y vienen del `config.json` del módulo
-  `detector`.
-- **Justificación:** Para validar el flujo end-to-end de la entrega no hace
-  falta personalización. La sensibilidad por defecto funciona bien en los
-  vídeos de prueba.
-- **Plan futuro (F6X, programada para el fin de semana antes de la entrega):**
-  Página `/account.html` con dos controles mínimos:
-  - **Sensibilidad de detección** (slider o tres niveles preset:
-    "Conservadora / Equilibrada / Generosa") que ajusta el umbral del
-    clasificador binario antes de marcar un frame como kill.
-  - **Margen y duración** del clip resultante.
-  Persistencia en una nueva tabla `user_settings` ligada al `User`. El
-  detector lee la configuración del usuario en lugar de la global cuando
-  procesa cada vídeo. Si por tiempo no se llega, queda como primera tarea
-  post-entrega.
+Además, vale la pena soportar máscaras alternativas (rectangular,
+oval, sin máscara, o PNG custom subido por el usuario) y permitir
+posicionar la facecam en esquinas (top-left, top-right, etc.) en
+lugar del centrado fijo actual.
 
 ---
 
-## Frontend
+## Editor visual post-detección
 
-### React / TypeScript / Tailwind / shadcn
-- **Estado MVP:** Frontend en **HTML/CSS/JS plano**, 4 páginas (login,
-  dashboard, upload, detalle de vídeo), tema dark + neón. Los archivos React
-  generados por la herramienta tipo Lovable/Dyad se han eliminado del repo
-  (commits `chore: eliminar scaffolding React/Vite generado` y siguientes).
-- **Justificación:** El alcance del TFG no requiere SPA. HTML/CSS/JS directo
-  reduce la superficie técnica que defender, encaja con los contenidos del
-  ciclo (DAW) y se desarrolla más rápido que un SPA con build pipeline.
-- **Plan futuro:** Reescribir el frontend en React + Vite + TypeScript si el
-  proyecto evoluciona, reutilizando los endpoints actuales del backend.
+El conversor TikTok actual hace una composición fija: recorta
+gameplay, recorta facecam, las apila vertical y exporta. No hay
+edición real.
+
+Un editor visual permitiría al usuario ajustar cada clip antes de
+descargarlo: marcar punto de entrada y salida con precisión de
+frame, añadir subtítulos generados (encajaría con Whisper), aplicar
+plantillas predefinidas según el tipo de highlight (1v1, multikill,
+clutch), y añadir overlays opcionales (marca de agua, texto fijo,
+contador de kills). La edición debería ser **no destructiva** sobre
+el clip original — guardar la timeline en BD y renderizar bajo
+demanda — para que el usuario pueda iterar.
 
 ---
 
-## Calidad
+## App móvil / PWA con notificaciones push
+
+El procesamiento es asíncrono: el usuario sube y queda esperando.
+Hoy la página `video.html` hace polling cada 5 s al backend para ver
+si terminó. Funciona en escritorio donde la pestaña está abierta,
+pero en móvil la pestaña se duerme.
+
+Convertir el frontend en una PWA con service worker y notificaciones
+push permitiría notificar "tu vídeo está listo" sin que el usuario
+tenga que mantener la app en primer plano. Encaja bien con el flujo
+de "subo, cierro, vuelvo cuando me avisen". El backend ya tiene la
+señal (status pasa a `done`); solo faltaría persistir el endpoint
+push de cada cliente y disparar la notificación tras la transición.
+
+---
+
+## Modelo de negocio
+
+El MVP no tiene plan de pago, ni cuotas, ni límites por usuario.
+Para un producto real eso es insostenible: el coste por minuto
+procesado es real (CPU/GPU, almacenamiento, ancho de banda).
+
+El esquema natural sería freemium con tres ejes: tamaño máximo de
+subida (free 2 GB / premium 10 GB), número de vídeos por mes,
+acceso a features avanzadas (Whisper, conversor TikTok configurable,
+editor). En el plan free se añadiría una marca de agua discreta en
+el clip exportado, y los jobs de free entrarían a la cola con
+prioridad menor que los premium. Modelos `Plan`, `Subscription` y
+`CreditLedger`, integración con una pasarela de pago (Stripe es la
+opción menos dolorosa), y webhooks para sincronizar estados.
+
+---
+
+## Operación
+
+### Rate limiting
+
+Los endpoints sensibles (`/api/auth/login`, `/api/auth/forgot-password`,
+`/api/auth/reset-password`, `/api/videos` POST) no tienen rate
+limiting. Eso significa que un atacante puede hacer fuerza bruta
+sobre passwords, enumerar emails registrados saturando el SMTP de
+Gmail, o agotar disco subiendo vídeos en bucle.
+
+`slowapi` (FastAPI + limiter) es el camino más directo: límites
+por IP en login (5/min), por email en forgot-password (1/min para
+no dejar el SMTP de Gmail al borde de bloqueo), y por usuario en
+upload (3/hora en plan free). Postgres + Redis dan storage propio
+para los contadores; en SQLite se puede usar memoria con la
+aceptación de que reiniciar el servidor resetea las cuotas.
+
+### Email templates HTML
+
+El email de reset de contraseña actual es texto plano. Funciona
+pero parece de los 90: cualquier usuario espera diseño,
+branding y link como botón. Pasar a HTML+text fallback con un
+template engine ligero (Jinja2 ya viene con FastAPI en realidad
+indirecto, o `email.message.EmailMessage` con `add_alternative`
+para multipart) y un par de plantillas (`reset_password.html`,
+quizás también un `welcome.html` post-registro y un
+`processing_done.html` cuando se generen los clips si se va por la
+ruta de notificaciones).
 
 ### Tests automatizados
-- **Estado MVP:** Sin cobertura de tests. Verificación manual end-to-end.
-- **Justificación:** Tiempo limitado; se prioriza tener el flujo funcionando.
-- **Plan futuro:** Tests unitarios con `pytest` para utilidades y servicios,
-  tests de integración con `httpx.AsyncClient` para los endpoints, fixture de
-  BD SQLite en memoria, y un test de humo del detector con un mp4 corto.
 
-### Logging estructurado y observabilidad
-- **Estado MVP:** `logging` estándar de Python a stdout.
-- **Plan futuro:** Logs en JSON, correlación por `request_id`, métricas de
-  procesamiento (tiempo medio por minuto de vídeo, tasa de fallos del
-  detector), y un dashboard básico (Prometheus + Grafana) si se llega a cloud.
-
----
-
-## Edición de vídeo
-
-### Convertidor TikTok configurable
-- **Estado MVP (F13.2):** El usuario puede activar un checkbox al subir el
-  vídeo para que ClipCatcher genere también la variante vertical 9:16 de
-  cada clip detectado, con la facecam superpuesta sobre una máscara
-  redondeada y centrada sobre el gameplay reescalado a 1080×1920. La
-  conversión se hace en una sola pasada de `ffmpeg` con `filter_complex`,
-  delegada en `backend/detector/tiktok_exporter.py`. Todas las coordenadas
-  de crop están **hardcoded** para el setup específico de OBS del autor:
-  - **Facecam**: 310×170 px en posición `(0, 140)`.
-  - **Gameplay**: 640×720 px en posición `(340, 0)`.
-  - Escalado de la facecam ×2, posición flotante centrada horizontalmente
-    a `y = 250` sobre el canvas vertical.
-  En grabaciones con otro layout estas coordenadas producen resultados
-  descuadrados.
-- **Justificación:** Para un MVP, "funciona para mi setup" es aceptable
-  como prueba de concepto del pipeline. Hacerlo configurable requería
-  diseño de UI específica (calibración visual o 8 inputs numéricos
-  acoplados que se entiendan sin documentación) que se sale del alcance
-  de la entrega.
-- **Plan futuro:**
-  - **Calibración visual por usuario:** subir un fotograma representativo
-    de la grabación y dibujar con el ratón los recortes facecam y
-    gameplay sobre la imagen. Persistir las 8 coordenadas en una nueva
-    tabla `user_tiktok_settings` o como columnas adicionales del User.
-  - **Alternativa más simple:** exponer los 8 valores como sliders/inputs
-    numéricos en `/account.html` (mismo patrón que F6X con
-    `chain_window_seconds` etc.).
-  - **Override por vídeo en la subida:** mismo patrón que F10.2 con los
-    settings del detector — la calibración persistente vive en el User
-    pero se puede sobreescribir por subida si una grabación concreta
-    tiene otro layout.
-  - **Soporte de máscaras alternativas:** rectangular, oval, sin máscara
-    (facecam recortada limpia), o subir una máscara propia en PNG con
-    alpha. Asset actualmente fijo en
-    `backend/detector/assets/tiktok_mask.png`.
-  - **Posición de la facecam configurable:** ahora siempre flotante
-    centrada en `y = 250`. Permitir esquinas (top-left, top-right,
-    bottom-left, bottom-right) o coordenadas libres.
+El MVP se ha verificado con smoke scripts puntuales que se borran
+tras pasar (creados en backend/_*_smoke.py durante cada fase).
+Antes de abrir la app a usuarios reales hace falta cobertura
+permanente: `pytest` para utilidades y servicios, integración con
+`httpx.AsyncClient` para los endpoints, fixture de SQLite en
+memoria para no depender del estado del disco, y un test de humo
+del detector con un mp4 corto que valide que el `.pt` carga y
+predice. La meta no es 100% de cobertura sino los caminos críticos
+(auth, upload, procesamiento, descarga, password reset) blindados.
 
 ---
 
-## Resumen ejecutivo
+## Resumen
 
-| Componente | MVP entregable | Producción objetivo |
+| Eje | MVP actual | Siguiente paso |
 |---|---|---|
-| Orquestación | `python` + `uvicorn` local | Docker Compose |
-| Reverse proxy | — (FastAPI sirve estáticos) | Nginx |
-| BD | SQLite | MySQL |
-| Migraciones | `create_all` al arrancar | Alembic |
-| Cola | `BackgroundTasks` | Redis + RQ |
-| Auth | Email + password + JWT | + Google OAuth |
-| Análisis visual | CNN ResNet18 (killfeed) | + pipeline reproducible + chain window por juego |
-| Análisis audio | — | Whisper + librosa (opt-in) |
-| Edición | Recorte temporal directo + variante 9:16 con coords hardcoded (F13.2) | Editor estilo TikTok configurable (calibración visual, máscaras alternativas, subtítulos) |
-| Configuración por usuario | Globales en `config.json` | Tabla `user_settings` (sensibilidad, margen, duración) |
-| Frontend | HTML/CSS/JS plano | React + Vite (opcional) |
-| Negocio | Sin créditos / sin planes | Modelo de suscripción |
-| Tests | Verificación manual | `pytest` + integración |
+| Persistencia | SQLite + `create_all` al arrancar | PostgreSQL + Alembic |
+| Cola de procesamiento | `BackgroundTasks` en proceso | Redis + RQ con workers GPU |
+| Detección visual | CNN binaria killfeed Valorant | Multijuego + eventos compuestos (ace, clutch, multikills) |
+| Análisis de audio | — | Whisper opt-in con librosa para picos |
+| Edición de vídeo | Recorte temporal + 9:16 con coords fijas | Editor visual + calibración por usuario + plantillas |
+| Cliente | Web responsive | PWA con notificaciones push |
+| Auth | Email+password, JWT, OAuth Google, password reset | + rate limiting en endpoints sensibles |
+| Comunicación con el usuario | Email texto plano | Templates HTML con branding |
+| Negocio | Sin cuotas | Freemium con créditos y planes |
+| Calidad | Smokes manuales por fase | `pytest` + integración + CI |
 
-El MVP cumple el flujo demostrable; cada fila de la tabla es un eje
-independiente de evolución hacia la arquitectura objetivo.
+Cada fila es un eje independiente y se pueden abordar en cualquier
+orden. Los más urgentes para abrir la app a usuarios reales son
+rate limiting, tests automatizados y migración a Postgres; el resto
+son evolución de producto a medio plazo.
