@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     google_redirect_uri: str = "http://127.0.0.1:8001/api/auth/google/callback"
     frontend_url: str = "http://127.0.0.1:8001"
 
+    # SMTP para password reset (F14). Si smtp_user / smtp_password
+    # estan vacios, el envio de email se hace no-op con log error.
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 465
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
