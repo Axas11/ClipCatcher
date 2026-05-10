@@ -1810,8 +1810,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
  * grandes con baja opacidad que se mueven lento via background-position). */
 .hero {
   position: relative;
-  padding-top: clamp(48px, 9vw, 96px);
-  padding-bottom: var(--section-pad-y);
+  padding-block: clamp(80px, 10vw, 160px);
   text-align: center;
   overflow: hidden;
 }
@@ -1836,7 +1835,7 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   100% { background-position: 10% 10%, 90% 10%, 50% 90%; }
 }
 .hero-content {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -1860,12 +1859,17 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
 .hero-title {
   font-family: var(--font-display);
   font-weight: 800;
-  /* Bajado ligeramente tras F13.1 (Geist mas ancho que Syne). */
-  font-size: clamp(36px, 5.6vw, 68px);
+  /* Subido en post-F13 para dar mas presencia visual al hero.
+   * Minimo 40px para no romper en mobile (320-360px) con palabras
+   * largas como "automaticamente"; maximo 96px en pantallas anchas. */
+  font-size: clamp(40px, 7vw, 96px);
   line-height: 1.05;
-  letter-spacing: -1.5px;
+  letter-spacing: -0.02em;
   margin: 0 0 var(--space-4);
   color: var(--text);
+  /* Permitir que palabras muy largas rompan en lugar de overflow
+   * horizontal en viewports estrechos. */
+  overflow-wrap: break-word;
 }
 .hero-title .highlight {
   background: var(--gradient);
@@ -1874,10 +1878,10 @@ input[type="range"].slider:focus::-webkit-slider-thumb {
   -webkit-text-fill-color: transparent;
 }
 .hero-subtitle {
-  font-size: clamp(16px, 1.6vw, 19px);
+  font-size: clamp(18px, 1.6vw, 24px);
   color: var(--text-mute);
   line-height: 1.55;
-  max-width: 640px;
+  max-width: 700px;
   margin: 0 auto var(--space-6);
 }
 .hero-cta {
